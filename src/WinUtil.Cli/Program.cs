@@ -66,6 +66,53 @@ switch (args[0])
             Console.WriteLine($"undone: {tweak.Id} -> {engine.Detect(tweak)}");
         });
 
+    case "debloat":
+    {
+#if WINDOWS
+        var appxCatalogPath = OptionValue(args, "--appx");
+        if (appxCatalogPath is null || !File.Exists(appxCatalogPath))
+        {
+            Console.Error.WriteLine("debloat requires --appx <path to appx.json>");
+            return 2;
+        }
+
+        var packages = CatalogLoader.LoadAppx(File.ReadAllText(appxCatalogPath));
+        var appxPort = new WinUtil.System.WindowsAppx();
+        var dryRun = args.Contains("--dry-run");
+        var present = 0;
+
+        foreach (var package in packages)
+        {
+            var found = appxPort.FindInstalled(package.PackageId);
+            if (found.Count == 0)
+            {
+                continue;
+            }
+
+            present++;
+            if (dryRun)
+            {
+                Console.WriteLine($"{package.PackageId,-50} INSTALLED ({package.Content})");
+            }
+            else
+            {
+                foreach (var fullName in found)
+                {
+                    appxPort.Remove(fullName);
+                }
+
+                Console.WriteLine($"{package.PackageId,-50} removed");
+            }
+        }
+
+        Console.WriteLine($"{(dryRun ? "Would remove" : "Removed")} {present} of {packages.Count} debloat catalog targets present on this system.");
+        return 0;
+#else
+        Console.Error.WriteLine("debloat requires Windows (this build targets another OS).");
+        return 3;
+#endif
+    }
+
     default:
         return Usage();
 }
@@ -74,7 +121,7 @@ int WithEngine(string catalog, string journal, Action<TweakEngine, IReadOnlyList
 {
 #if WINDOWS
     return WithTweaks(catalog, tweaks =>
-        action(new TweakEngine(new WinUtil.System.WindowsRegistry(), new FileJournal(journal), new WinUtil.System.WindowsServices(), new WinUtil.System.ProcessCommandRunner()), tweaks));
+        action(new TweakEngine(new WinUtil.System.WindowsRegistry(), new FileJournal(journal), new WinUtil.System.WindowsServices(), new WinUtil.System.ProcessCommandRunner(), new WinUtil.System.WindowsAppx()), tweaks));
 #else
     Console.Error.WriteLine("apply/detect/undo require Windows (this build targets another OS).");
     return 3;
@@ -138,6 +185,8 @@ static int Usage()
           detect <id>|--all    read the REAL system state: Applied | NotApplied | Drifted | Unknown
           apply <id>           apply a tweak natively (journals prior values; refuses script tweaks)
           undo <id>            restore journaled values (falls back to catalog originals)
+          debloat --appx <path> [--dry-run]
+                               remove (or list, with --dry-run) installed appx.json debloat targets
         """);
     return 1;
 }

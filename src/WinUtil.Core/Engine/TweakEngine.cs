@@ -8,7 +8,7 @@ namespace WinUtil.Core.Engine;
 /// ports. Registry and service changes are handled natively; script escape
 /// hatches are not executed here (they are the tracked burn-down backlog).
 /// </summary>
-public sealed class TweakEngine(IRegistry registry, IJournal journal, IServices? services = null, ICommandRunner? commands = null)
+public sealed class TweakEngine(IRegistry registry, IJournal journal, IServices? services = null, ICommandRunner? commands = null, IAppx? appx = null)
 {
     /// <summary>
     /// Ground truth from the live system: Applied when every declared change
@@ -89,6 +89,18 @@ public sealed class TweakEngine(IRegistry registry, IJournal journal, IServices?
         foreach (var command in tweak.Commands)
         {
             RunCommand(command);
+        }
+
+        foreach (var pattern in tweak.AppxRemove)
+        {
+            var port = appx
+                ?? throw new InvalidOperationException("This tweak declares Appx removals but no IAppx adapter was provided.");
+
+            // Removal is inherently one-way; nothing is journaled for these.
+            foreach (var fullName in port.FindInstalled(pattern))
+            {
+                port.Remove(fullName);
+            }
         }
     }
 

@@ -27,7 +27,7 @@ jobs:
         run: dotnet build --configuration Release
 
       - name: Validate catalog end-to-end on Windows
-        run: dotnet run --project src/WinUtil.Cli --configuration Release --no-build --framework net10.0-windows -- validate --catalog "$env:RUNNER_TEMP\winutil\config\tweaks.json"
+        run: dotnet run --project src/WinUtil.Cli --configuration Release --no-build --framework net10.0-windows10.0.19041.0 -- validate --catalog "$env:RUNNER_TEMP\winutil\config\tweaks.json"
 
       - name: Integration suite (real registry, no PowerShell spawned)
         run: dotnet test tests/WinUtil.Integration.Tests --configuration Release --no-build
@@ -35,4 +35,7 @@ jobs:
           RUN_WINDOWS_INTEGRATION: "1"
 
       - name: Detect real state of every catalog tweak on this VM
-        run: dotnet run --project src/WinUtil.Cli --configuration Release --no-build --framework net10.0-windows -- detect --all --catalog "$env:RUNNER_TEMP\winutil\config\tweaks.json"
+        run: dotnet run --project src/WinUtil.Cli --configuration Release --no-build --framework net10.0-windows10.0.19041.0 -- detect --all --catalog "$env:RUNNER_TEMP\winutil\config\tweaks.json"
+
+      - name: Debloat dry-run over the real appx.json (read-only)
+        run: dotnet run --project src/WinUtil.Cli --configuration Release --no-build --framework net10.0-windows10.0.19041.0 -- debloat --appx "$env:RUNNER_TEMP\winutil\config\appx.json" --dry-run

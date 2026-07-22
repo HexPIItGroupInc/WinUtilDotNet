@@ -28,6 +28,7 @@ public static class CatalogLoader
             {
                 Commands = over?.Apply ?? [],
                 UndoCommands = over?.Undo ?? [],
+                AppxRemove = over?.AppxRemove ?? [],
                 ScriptsCovered = over is not null,
                 Id = entry.Name,
                 Content = GetString(e, "Content") ?? entry.Name,
@@ -63,7 +64,28 @@ public static class CatalogLoader
         return tweaks;
     }
 
-    private sealed record OverlayEntry(IReadOnlyList<CommandAction> Apply, IReadOnlyList<CommandAction> Undo);
+    /// <summary>Parse winutil's appx.json debloat catalog.</summary>
+    public static IReadOnlyList<AppxPackage> LoadAppx(string json)
+    {
+        using var doc = JsonDocument.Parse(JsonSanitizer.Sanitize(json));
+        var packages = new List<AppxPackage>();
+
+        foreach (var entry in doc.RootElement.EnumerateObject())
+        {
+            packages.Add(new AppxPackage
+            {
+                Id = entry.Name,
+                Content = GetString(entry.Value, "Content") ?? entry.Name,
+                Category = GetString(entry.Value, "Category"),
+                PackageId = GetString(entry.Value, "PackageId") ?? throw MissingField(entry.Name, "PackageId"),
+                StoreId = GetString(entry.Value, "StoreId"),
+            });
+        }
+
+        return packages;
+    }
+
+    private sealed record OverlayEntry(IReadOnlyList<CommandAction> Apply, IReadOnlyList<CommandAction> Undo, IReadOnlyList<string> AppxRemove);
 
     private static Dictionary<string, OverlayEntry> LoadOverlay(string overlayJson)
     {
@@ -74,7 +96,8 @@ public static class CatalogLoader
         {
             overlay[entry.Name] = new OverlayEntry(
                 ReadArray(entry.Value, "apply", ReadCommand),
-                ReadArray(entry.Value, "undo", ReadCommand));
+                ReadArray(entry.Value, "undo", ReadCommand),
+                ReadArray(entry.Value, "appxRemove", e => e.GetString() ?? ""));
         }
 
         return overlay;

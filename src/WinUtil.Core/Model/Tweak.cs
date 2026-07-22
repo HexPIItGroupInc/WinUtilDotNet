@@ -31,6 +31,9 @@ public sealed record Tweak
 
     public IReadOnlyList<CommandAction> UndoCommands { get; init; } = [];
 
+    /// <summary>Overlay: Appx identity-name patterns to remove on apply (removal has no undo).</summary>
+    public IReadOnlyList<string> AppxRemove { get; init; } = [];
+
     /// <summary>True when a native overlay entry covers this tweak's scripts.</summary>
     public bool ScriptsCovered { get; init; }
 

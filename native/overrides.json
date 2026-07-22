@@ -15,6 +15,14 @@
     "apply": [{ "file": "icacls.exe", "args": "\"%LocalAppData%\\Packages\\Microsoft.WindowsStore_8wekyb3d8bbwe\\LocalState\\store.db\" /deny Everyone:F" }],
     "undo": [{ "file": "icacls.exe", "args": "\"%LocalAppData%\\Packages\\Microsoft.WindowsStore_8wekyb3d8bbwe\\LocalState\\store.db\" /grant Everyone:F" }]
   },
+  "WPFTweaksWidget": {
+    "apply": [
+      { "file": "taskkill.exe", "args": "/f /im Widgets.exe", "ignoreExitCode": true },
+      { "file": "taskkill.exe", "args": "/f /im WidgetService.exe", "ignoreExitCode": true }
+    ],
+    "appxRemove": ["Microsoft.WidgetsPlatformRuntime", "MicrosoftWindows.Client.WebExperience"],
+    "undo": []
+  },
   "WPFTweaksDiskCleanup": {
     "apply": [
       { "file": "cleanmgr.exe", "args": "/d C: /VERYLOWDISK", "ignoreExitCode": true },
