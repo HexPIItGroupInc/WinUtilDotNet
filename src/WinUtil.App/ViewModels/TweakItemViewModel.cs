@@ -80,20 +80,33 @@ public partial class TweakItemViewModel(Tweak tweak, MainViewModel parent) : Obs
     }
 
     [RelayCommand]
-    private Task ApplyAsync() => Run("applied", e => e.Apply(tweak));
+    private async Task ApplyAsync() => await Run("applied", e => e.Apply(tweak));
 
     [RelayCommand]
-    private Task UndoAsync() => Run("undone", e => e.Undo(tweak));
+    private async Task UndoAsync() => await Run("undone", e => e.Undo(tweak));
 
-    private async Task Run(string verb, Action<Core.Engine.TweakEngine> action)
+    /// <summary>Apply as part of a OneShot batch; returns whether it succeeded.
+    /// Already-applied or non-actionable tweaks are a no-op success.</summary>
+    public async Task<bool> ApplyForBatchAsync()
+    {
+        if (!CanAct || State == ActionState.Applied)
+        {
+            return true;
+        }
+
+        return await Run("applied", e => e.Apply(tweak));
+    }
+
+    private async Task<bool> Run(string verb, Action<Core.Engine.TweakEngine> action)
     {
         if (parent.Engine is not { } engine)
         {
-            return;
+            return false;
         }
 
         parent.SetStatus($"{Name}: {verb}…");
         ActionMessage = null;
+        var succeeded = true;
         string status;
         try
         {
@@ -106,6 +119,7 @@ public partial class TweakItemViewModel(Tweak tweak, MainViewModel parent) : Obs
         catch (Exception e)      // failure (network, ACL, missing tool) becomes a message.
 #pragma warning restore CA1031
         {
+            succeeded = false;
             var hint = e is UnauthorizedAccessException ? " This action needs administrator rights — launch WinUtil as administrator." : "";
             ActionMessage = e.Message + hint;
             status = $"{Name}: couldn't {verb.TrimEnd('d', 'e')} — see the note on the card";
@@ -115,5 +129,6 @@ public partial class TweakItemViewModel(Tweak tweak, MainViewModel parent) : Obs
         Redetect();
         parent.RefreshSummary();
         parent.SetStatus(status);
+        return succeeded;
     }
 }

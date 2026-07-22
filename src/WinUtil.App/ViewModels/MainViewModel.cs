@@ -27,6 +27,22 @@ public partial class MainViewModel : ObservableObject
     [ObservableProperty]
     private string statusText = "";
 
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(OneShotLabel))]
+    private bool oneShotArmed;
+
+    [ObservableProperty]
+    private bool isBusy;
+
+    /// <summary>Number of tweaks in the current view that OneShot would act on.</summary>
+    public int ActionableCount => FilteredTweaks.Count(t => t.ShowApply);
+
+    public bool OneShotVisible => EngineAvailable;
+
+    public string OneShotLabel => OneShotArmed
+        ? $"Confirm — apply {ActionableCount} in “{SelectedCategory}”"
+        : "⚡ OneShot";
+
     public ObservableCollection<string> Categories { get; } = [];
 
     public ObservableCollection<TweakItemViewModel> FilteredTweaks { get; } = [];
@@ -105,6 +121,56 @@ public partial class MainViewModel : ObservableObject
 
     partial void OnSelectedCategoryChanged(string value) => ApplyFilter();
 
+    /// <summary>
+    /// OneShot — apply every actionable tweak in the current category/search view.
+    /// First click arms (shows the count to confirm); second click runs the batch,
+    /// each tweak resilient so one failure never stops the rest.
+    /// </summary>
+    [RelayCommand]
+    private async Task OneShot()
+    {
+        if (!EngineAvailable || IsBusy)
+        {
+            return;
+        }
+
+        if (!OneShotArmed)
+        {
+            OneShotArmed = true;
+            return;
+        }
+
+        OneShotArmed = false;
+        var targets = FilteredTweaks.Where(t => t.ShowApply).ToList();
+        if (targets.Count == 0)
+        {
+            StatusText = $"Nothing to apply in “{SelectedCategory}” — everything here is already applied.";
+            return;
+        }
+
+        IsBusy = true;
+        var applied = 0;
+        var failed = 0;
+        for (var i = 0; i < targets.Count; i++)
+        {
+            StatusText = $"OneShot “{SelectedCategory}”: {i + 1} of {targets.Count} — {targets[i].Name}…";
+            if (await targets[i].ApplyForBatchAsync())
+            {
+                applied++;
+            }
+            else
+            {
+                failed++;
+            }
+        }
+
+        IsBusy = false;
+        RefreshSummary();
+        StatusText = failed == 0
+            ? $"OneShot “{SelectedCategory}” complete: {applied} applied."
+            : $"OneShot “{SelectedCategory}”: {applied} applied, {failed} need attention (see the notes on those cards).";
+    }
+
     private void ApplyFilter()
     {
         FilteredTweaks.Clear();
@@ -112,6 +178,11 @@ public partial class MainViewModel : ObservableObject
         {
             FilteredTweaks.Add(item);
         }
+
+        // A changed view invalidates a pending confirm and the actionable count.
+        OneShotArmed = false;
+        OnPropertyChanged(nameof(ActionableCount));
+        OnPropertyChanged(nameof(OneShotLabel));
     }
 
     private bool Matches(TweakItemViewModel item) =>

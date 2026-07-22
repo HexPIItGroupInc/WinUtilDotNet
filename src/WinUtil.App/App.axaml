@@ -45,6 +45,22 @@
       <Setter Property="Background" Value="#3B82F6" />
     </Style>
 
+    <!-- OneShot: the "apply everything in this category" power action. -->
+    <Style Selector="Button.oneshot">
+      <Setter Property="Background" Value="#7C3AED" />
+      <Setter Property="Foreground" Value="White" />
+    </Style>
+    <Style Selector="Button.oneshot:pointerover /template/ ContentPresenter">
+      <Setter Property="Background" Value="#8B5CF6" />
+    </Style>
+    <!-- Armed (awaiting confirm): amber, so a batch apply is a deliberate act. -->
+    <Style Selector="Button.oneshot.armed">
+      <Setter Property="Background" Value="#D97706" />
+    </Style>
+    <Style Selector="Button.oneshot.armed:pointerover /template/ ContentPresenter">
+      <Setter Property="Background" Value="#F59E0B" />
+    </Style>
+
     <Style Selector="ListBox.nav ListBoxItem">
       <Setter Property="CornerRadius" Value="8" />
       <Setter Property="Padding" Value="12,8" />
