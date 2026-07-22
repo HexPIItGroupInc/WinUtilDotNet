@@ -8,7 +8,7 @@ namespace WinUtil.Core.Engine;
 /// ports. Registry and service changes are handled natively; script escape
 /// hatches are not executed here (they are the tracked burn-down backlog).
 /// </summary>
-public sealed class TweakEngine(IRegistry registry, IJournal journal, IServices? services = null)
+public sealed class TweakEngine(IRegistry registry, IJournal journal, IServices? services = null, ICommandRunner? commands = null)
 {
     /// <summary>
     /// Ground truth from the live system: Applied when every declared change
@@ -85,6 +85,11 @@ public sealed class TweakEngine(IRegistry registry, IJournal journal, IServices?
             journal.Record(new JournalEntry(tweak.Id, change.Name, "StartupType", previous, existed, JournalEntry.ServiceKind));
             Services.SetStartupType(change.Name, change.StartupType);
         }
+
+        foreach (var command in tweak.Commands)
+        {
+            RunCommand(command);
+        }
     }
 
     /// <summary>
@@ -130,7 +135,24 @@ public sealed class TweakEngine(IRegistry registry, IJournal journal, IServices?
             }
         }
 
+        foreach (var command in tweak.UndoCommands)
+        {
+            RunCommand(command);
+        }
+
         journal.Clear(tweak.Id);
+    }
+
+    private void RunCommand(Model.CommandAction command)
+    {
+        var runner = commands
+            ?? throw new InvalidOperationException("This tweak declares overlay commands but no ICommandRunner was provided.");
+
+        var exitCode = runner.Run(command);
+        if (exitCode != 0 && !command.IgnoreExitCode)
+        {
+            throw new InvalidOperationException($"Command '{command.File} {command.Args}' exited with code {exitCode}.");
+        }
     }
 
     private IServices Services => services

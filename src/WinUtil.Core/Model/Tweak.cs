@@ -26,10 +26,20 @@ public sealed record Tweak
 
     public IReadOnlyList<string> UndoScript { get; init; } = [];
 
+    /// <summary>Native overlay commands replacing this tweak's scripts (ADR-0004).</summary>
+    public IReadOnlyList<CommandAction> Commands { get; init; } = [];
+
+    public IReadOnlyList<CommandAction> UndoCommands { get; init; } = [];
+
+    /// <summary>True when a native overlay entry covers this tweak's scripts.</summary>
+    public bool ScriptsCovered { get; init; }
+
+    public bool HasScripts => InvokeScript.Count > 0 || UndoScript.Count > 0;
+
     /// <summary>
     /// True when every effect of this tweak is expressible through typed,
-    /// natively-executable actions — i.e. no script escape hatch is needed.
+    /// natively-executable actions — i.e. no PowerShell escape hatch is needed.
     /// The "PowerShell-free %" metric counts these.
     /// </summary>
-    public bool IsNativelyExecutable => InvokeScript.Count == 0 && UndoScript.Count == 0;
+    public bool IsNativelyExecutable => !HasScripts || ScriptsCovered;
 }

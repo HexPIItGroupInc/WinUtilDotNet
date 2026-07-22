@@ -8,6 +8,7 @@ if (args.Length == 0)
 }
 
 var catalogPath = OptionValue(args, "--catalog") ?? "config/tweaks.json";
+var overlayPath = OptionValue(args, "--overlay") ?? (File.Exists("native/overrides.json") ? "native/overrides.json" : null);
 var journalPath = OptionValue(args, "--journal")
     ?? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "WinUtilsDotNet", "journal.json");
 
@@ -27,7 +28,7 @@ switch (args[0])
         return WithTweaks(catalogPath, tweaks =>
         {
             var c = CatalogCoverage.Measure(tweaks);
-            Console.WriteLine($"PowerShell-free: {c.NativePercent:F1}% ({c.Native}/{c.Total} tweaks native, {c.EscapeHatch} on the script escape hatch)");
+            Console.WriteLine($"PowerShell-free: {c.NativePercent:F1}% ({c.Native}/{c.Total} — {c.TypedNative} typed, {c.Overlaid} overlay-converted, {c.EscapeHatch} still on the script escape hatch)");
         });
 
     case "validate":
@@ -73,7 +74,7 @@ int WithEngine(string catalog, string journal, Action<TweakEngine, IReadOnlyList
 {
 #if WINDOWS
     return WithTweaks(catalog, tweaks =>
-        action(new TweakEngine(new WinUtil.System.WindowsRegistry(), new FileJournal(journal), new WinUtil.System.WindowsServices()), tweaks));
+        action(new TweakEngine(new WinUtil.System.WindowsRegistry(), new FileJournal(journal), new WinUtil.System.WindowsServices(), new WinUtil.System.ProcessCommandRunner()), tweaks));
 #else
     Console.Error.WriteLine("apply/detect/undo require Windows (this build targets another OS).");
     return 3;
@@ -99,7 +100,7 @@ static void RequireNative(Tweak tweak)
     }
 }
 
-static int WithTweaks(string catalogPath, Action<IReadOnlyList<Tweak>> action)
+int WithTweaks(string catalogPath, Action<IReadOnlyList<Tweak>> action)
 {
     if (!File.Exists(catalogPath))
     {
@@ -109,7 +110,7 @@ static int WithTweaks(string catalogPath, Action<IReadOnlyList<Tweak>> action)
 
     try
     {
-        action(CatalogLoader.LoadTweaks(File.ReadAllText(catalogPath)));
+        action(CatalogLoader.LoadTweaks(File.ReadAllText(catalogPath), overlayPath is null ? null : File.ReadAllText(overlayPath)));
         return 0;
     }
     catch (Exception e) when (e is ArgumentException or NotSupportedException or InvalidOperationException)

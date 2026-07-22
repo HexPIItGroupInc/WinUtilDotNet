@@ -10,16 +10,25 @@ namespace WinUtil.Core.Catalog;
 /// </summary>
 public static class CatalogLoader
 {
-    public static IReadOnlyList<Tweak> LoadTweaks(string json)
+    /// <param name="json">Upstream tweaks.json content, byte-for-byte.</param>
+    /// <param name="overlayJson">Optional native overlay (ADR-0004): per-tweak command
+    /// replacements for script escape hatches. Overlay ids must exist in the catalog —
+    /// a stale overlay is a build-breaking contract violation, not a shrug.</param>
+    public static IReadOnlyList<Tweak> LoadTweaks(string json, string? overlayJson = null)
     {
+        var overlay = overlayJson is null ? [] : LoadOverlay(overlayJson);
         using var doc = JsonDocument.Parse(JsonSanitizer.Sanitize(json));
         var tweaks = new List<Tweak>();
 
         foreach (var entry in doc.RootElement.EnumerateObject())
         {
             var e = entry.Value;
+            var over = overlay.TryGetValue(entry.Name, out var o) ? o : null;
             tweaks.Add(new Tweak
             {
+                Commands = over?.Apply ?? [],
+                UndoCommands = over?.Undo ?? [],
+                ScriptsCovered = over is not null,
                 Id = entry.Name,
                 Content = GetString(e, "Content") ?? entry.Name,
                 Description = GetString(e, "Description"),
@@ -45,8 +54,38 @@ public static class CatalogLoader
             });
         }
 
+        var unknown = overlay.Keys.Except(tweaks.Select(t => t.Id)).ToList();
+        if (unknown.Count > 0)
+        {
+            throw new FormatException($"Native overlay refers to tweak ids missing from the catalog: {string.Join(", ", unknown)}. The upstream contract changed — update the overlay.");
+        }
+
         return tweaks;
     }
+
+    private sealed record OverlayEntry(IReadOnlyList<CommandAction> Apply, IReadOnlyList<CommandAction> Undo);
+
+    private static Dictionary<string, OverlayEntry> LoadOverlay(string overlayJson)
+    {
+        using var doc = JsonDocument.Parse(overlayJson);
+        var overlay = new Dictionary<string, OverlayEntry>();
+
+        foreach (var entry in doc.RootElement.EnumerateObject())
+        {
+            overlay[entry.Name] = new OverlayEntry(
+                ReadArray(entry.Value, "apply", ReadCommand),
+                ReadArray(entry.Value, "undo", ReadCommand));
+        }
+
+        return overlay;
+    }
+
+    private static CommandAction ReadCommand(JsonElement e) => new()
+    {
+        File = GetString(e, "file") ?? throw new FormatException("Overlay command is missing 'file'."),
+        Args = GetString(e, "args") ?? "",
+        IgnoreExitCode = e.TryGetProperty("ignoreExitCode", out var i) && i.ValueKind == JsonValueKind.True,
+    };
 
     private static string? GetString(JsonElement element, string name) =>
         element.TryGetProperty(name, out var value) && value.ValueKind == JsonValueKind.String
