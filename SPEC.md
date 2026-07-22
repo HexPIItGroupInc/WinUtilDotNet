@@ -79,7 +79,10 @@ The proof-of-concept is a Phase 1 subset: registry + service + appx actions nati
 ## Open questions
 
 - GUI framework: WPF (familiarity, existing XAML concepts transfer) vs Avalonia (AOT single-exe distribution). Current lean: WPF.
-- Exact scope of Chris's "settings" pain point — UI state drift vs Settings-app-guarded knobs that resist registry edits. The design addresses the first directly; the adapter layer is where the second gets absorbed.
+
+## Resolved
+
+- Chris's "settings" pain point (per his 2026-07-22 video): **UI state drift** — toggles showing inferred rather than real system state. Addressed head-on by first-class `Detect()`; already demonstrated in CI, where a `detect --all` sweep of the live test VM correctly reported partially-reverted tweaks as `Drifted`.
 
 ## License
 
