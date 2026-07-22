@@ -33,4 +33,4 @@ jobs:
           WINUTIL_REPO: /tmp/winutil
 
       - name: PowerShell-free coverage metric
-        run: dotnet run --project src/WinUtil.Cli --configuration Release --no-build -- coverage --catalog /tmp/winutil/config/tweaks.json
+        run: dotnet run --project src/WinUtil.Cli --configuration Release --no-build --framework net10.0 -- coverage --catalog /tmp/winutil/config/tweaks.json
