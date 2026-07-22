@@ -22,6 +22,9 @@ public partial class MainViewModel : ObservableObject
     private string coverageText = "";
 
     [ObservableProperty]
+    private string summaryText = "";
+
+    [ObservableProperty]
     private string statusText = "";
 
     public ObservableCollection<string> Categories { get; } = [];
@@ -84,7 +87,18 @@ public partial class MainViewModel : ObservableObject
             item.Redetect();
         }
 
+        RefreshSummary();
         StatusText = $"Detected real system state for {allTweaks.Count} tweaks";
+    }
+
+    /// <summary>Recompute the header tally; call after any state change.</summary>
+    internal void RefreshSummary()
+    {
+        var applied = allTweaks.Count(t => t.State == ActionState.Applied);
+        var drifted = allTweaks.Count(t => t.State == ActionState.Drifted);
+        SummaryText = EngineAvailable
+            ? $"{applied} applied · {drifted} drifted"
+            : "browse mode — actions need Windows";
     }
 
     partial void OnSearchChanged(string value) => ApplyFilter();
@@ -131,16 +145,16 @@ public partial class MainViewModel : ObservableObject
     private static TweakEngine? CreateEngine()
     {
 #if WINDOWS
-        var journal = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "WinUtilsDotNet", "journal.json");
         return new TweakEngine(
             new WinUtil.System.WindowsRegistry(),
-            new FileJournal(journal),
+            new FileJournal(WinUtil.System.SharedJournal.EnsureWritable()),
             new WinUtil.System.WindowsServices(),
             new WinUtil.System.ProcessCommandRunner(),
             new WinUtil.System.WindowsAppx(),
             new WinUtil.System.NativeFileSystem(),
             new WinUtil.System.HostsFileBlocker(),
-            new WinUtil.System.WindowsTokenProvider());
+            new WinUtil.System.WindowsTokenProvider(),
+            source: "gui");
 #else
         return null;
 #endif

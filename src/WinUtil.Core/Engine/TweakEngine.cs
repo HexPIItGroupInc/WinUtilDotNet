@@ -8,7 +8,7 @@ namespace WinUtil.Core.Engine;
 /// ports. Registry and service changes are handled natively; script escape
 /// hatches are not executed here (they are the tracked burn-down backlog).
 /// </summary>
-public sealed class TweakEngine(IRegistry registry, IJournal journal, IServices? services = null, ICommandRunner? commands = null, IAppx? appx = null, IFileSystem? files = null, IHostsBlocker? hosts = null, ITokenProvider? tokens = null)
+public sealed class TweakEngine(IRegistry registry, IJournal journal, IServices? services = null, ICommandRunner? commands = null, IAppx? appx = null, IFileSystem? files = null, IHostsBlocker? hosts = null, ITokenProvider? tokens = null, string source = "unknown")
 {
     private string Expand(string value) =>
         tokens is null || !value.Contains("{{", StringComparison.Ordinal) ? value : tokens.Resolve(value);
@@ -105,7 +105,7 @@ public sealed class TweakEngine(IRegistry registry, IJournal journal, IServices?
             if (journaled.Add((JournalEntry.RegistryKind, change.Path, change.Name)))
             {
                 var existed = registry.TryGetValue(change.Path, change.Name, out var previous);
-                journal.Record(new JournalEntry(tweak.Id, change.Path, change.Name, previous, existed));
+                journal.Record(new JournalEntry(tweak.Id, change.Path, change.Name, previous, existed, Source: source));
             }
 
             registry.SetValue(change.Path, change.Name, Expand(change.Value), change.Type);
@@ -116,7 +116,7 @@ public sealed class TweakEngine(IRegistry registry, IJournal journal, IServices?
             if (journaled.Add((JournalEntry.ServiceKind, change.Name, "StartupType")))
             {
                 var existed = Services.TryGetStartupType(change.Name, out var previous);
-                journal.Record(new JournalEntry(tweak.Id, change.Name, "StartupType", previous, existed, JournalEntry.ServiceKind));
+                journal.Record(new JournalEntry(tweak.Id, change.Name, "StartupType", previous, existed, JournalEntry.ServiceKind, source));
             }
 
             Services.SetStartupType(change.Name, change.StartupType);

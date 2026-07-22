@@ -10,7 +10,11 @@ if (args.Length == 0)
 var catalogPath = OptionValue(args, "--catalog") ?? "config/tweaks.json";
 var overlayPath = OptionValue(args, "--overlay") ?? (File.Exists("native/overrides.json") ? "native/overrides.json" : null);
 var journalPath = OptionValue(args, "--journal")
+#if WINDOWS
+    ?? WinUtil.System.SharedJournal.EnsureWritable();
+#else
     ?? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "WinUtilsDotNet", "journal.json");
+#endif
 
 switch (args[0])
 {
@@ -65,6 +69,31 @@ switch (args[0])
             engine.Undo(tweak);
             Console.WriteLine($"undone: {tweak.Id} -> {engine.Detect(tweak)}");
         });
+
+    case "journal":
+    {
+        if (!File.Exists(journalPath))
+        {
+            Console.WriteLine($"Journal is empty ({journalPath}).");
+            return 0;
+        }
+
+        var snapshot = new FileJournal(journalPath).Snapshot();
+        if (snapshot.Count == 0)
+        {
+            Console.WriteLine("Journal is empty — nothing applied through this tool.");
+            return 0;
+        }
+
+        Console.WriteLine($"Applied tweaks recorded in {journalPath}:");
+        foreach (var (tweakId, tweakEntries) in snapshot.OrderBy(kv => kv.Key))
+        {
+            var source = tweakEntries.Select(e => e.Source).Distinct().FirstOrDefault() ?? "unknown";
+            Console.WriteLine($"  {tweakId,-42} via {source,-4} ({tweakEntries.Count} value(s) journaled)");
+        }
+
+        return 0;
+    }
 
     case "debloat":
     {
@@ -121,7 +150,7 @@ int WithEngine(string catalog, string journal, Action<TweakEngine, IReadOnlyList
 {
 #if WINDOWS
     return WithTweaks(catalog, tweaks =>
-        action(new TweakEngine(new WinUtil.System.WindowsRegistry(), new FileJournal(journal), new WinUtil.System.WindowsServices(), new WinUtil.System.ProcessCommandRunner(), new WinUtil.System.WindowsAppx(), new WinUtil.System.NativeFileSystem(), new WinUtil.System.HostsFileBlocker(), new WinUtil.System.WindowsTokenProvider()), tweaks));
+        action(new TweakEngine(new WinUtil.System.WindowsRegistry(), new FileJournal(journal), new WinUtil.System.WindowsServices(), new WinUtil.System.ProcessCommandRunner(), new WinUtil.System.WindowsAppx(), new WinUtil.System.NativeFileSystem(), new WinUtil.System.HostsFileBlocker(), new WinUtil.System.WindowsTokenProvider(), source: "cli"), tweaks));
 #else
     Console.Error.WriteLine("apply/detect/undo require Windows (this build targets another OS).");
     return 3;
@@ -185,6 +214,7 @@ static int Usage()
           detect <id>|--all    read the REAL system state: Applied | NotApplied | Drifted | Unknown
           apply <id>           apply a tweak natively (journals prior values; refuses script tweaks)
           undo <id>            restore journaled values (falls back to catalog originals)
+          journal              list tweaks applied through this tool, with source (cli/gui)
           debloat --appx <path> [--dry-run]
                                remove (or list, with --dry-run) installed appx.json debloat targets
         """);

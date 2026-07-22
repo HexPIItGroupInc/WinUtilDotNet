@@ -106,6 +106,17 @@ public class TweakEngineTests
     }
 
     [Fact]
+    public void Apply_records_the_source_on_journal_entries()
+    {
+        var journal = new InMemoryJournal();
+        var engine = new TweakEngine(new FakeRegistry(), journal, source: "gui");
+
+        engine.Apply(RegistryTweak());
+
+        Assert.All(journal.EntriesFor("WPFTweaksTest"), e => Assert.Equal("gui", e.Source));
+    }
+
+    [Fact]
     public void Tweak_with_no_typed_changes_is_Unknown()
     {
         var engine = new TweakEngine(new FakeRegistry(), new InMemoryJournal());

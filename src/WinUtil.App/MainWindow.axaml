@@ -22,6 +22,9 @@
           <TextBlock Text="{Binding CoverageText}" Foreground="#7EB3FF" />
         </Border>
 
+        <TextBlock Grid.Column="2" Text="{Binding SummaryText}" Margin="16,0,0,0"
+                   VerticalAlignment="Center" Foreground="#8B96A3" FontSize="12" FontWeight="SemiBold" />
+
         <TextBox Grid.Column="3" Width="260" Watermark="Search tweaks…"
                  Text="{Binding Search, Mode=TwoWay}" CornerRadius="8" VerticalAlignment="Center" />
 
@@ -56,9 +59,12 @@
           <DataTemplate x:DataType="vm:TweakItemViewModel">
             <Border Classes="card">
               <!-- Fixed action rail: chips and buttons align across all cards,
-                   descriptions can never crowd or clip them. -->
-              <Grid ColumnDefinitions="*,290">
-                <StackPanel Grid.Column="0" Spacing="3" Margin="0,0,16,0">
+                   descriptions can never crowd or clip them. Left accent bar
+                   marks applied (green) / drifted (amber) at a glance. -->
+              <Grid ColumnDefinitions="4,*,290">
+                <Border Grid.Column="0" Background="{Binding AccentBrush}"
+                        CornerRadius="2" Margin="-8,-4,10,-4" />
+                <StackPanel Grid.Column="1" Spacing="3" Margin="0,0,16,0">
                   <StackPanel Orientation="Horizontal" Spacing="8">
                     <TextBlock Text="{Binding Name}" FontWeight="SemiBold" FontSize="14" />
                     <Border Classes="chip" Background="#3A2A10" IsVisible="{Binding IsScript}">
@@ -69,15 +75,15 @@
                              Foreground="#8B96A3" FontSize="12" />
                 </StackPanel>
 
-                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8"
+                <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8"
                             VerticalAlignment="Center" HorizontalAlignment="Right">
                   <Border Classes="chip" Background="{Binding ChipBackground}">
                     <TextBlock Text="{Binding StateText}" Foreground="{Binding StateBrush}" />
                   </Border>
-                  <Button Classes="action primary" Content="Apply"
-                          Command="{Binding ApplyCommand}" IsVisible="{Binding CanAct}" />
+                  <Button Classes="action primary" Content="{Binding ApplyLabel}"
+                          Command="{Binding ApplyCommand}" IsVisible="{Binding ShowApply}" />
                   <Button Classes="action" Content="Undo"
-                          Command="{Binding UndoCommand}" IsVisible="{Binding CanAct}" />
+                          Command="{Binding UndoCommand}" IsVisible="{Binding ShowUndo}" />
                 </StackPanel>
               </Grid>
             </Border>

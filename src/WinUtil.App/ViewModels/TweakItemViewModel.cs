@@ -8,7 +8,8 @@ namespace WinUtil.App.ViewModels;
 public partial class TweakItemViewModel(Tweak tweak, MainViewModel parent) : ObservableObject
 {
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(StateText), nameof(StateBrush), nameof(ChipBackground))]
+    [NotifyPropertyChangedFor(nameof(StateText), nameof(StateBrush), nameof(ChipBackground),
+        nameof(AccentBrush), nameof(ShowApply), nameof(ShowUndo), nameof(ApplyLabel))]
     private ActionState state = ActionState.Unknown;
 
     public string Name => tweak.Content;
@@ -23,12 +24,21 @@ public partial class TweakItemViewModel(Tweak tweak, MainViewModel parent) : Obs
 
     public bool CanAct => parent.EngineAvailable && IsNative;
 
+    // Apply is offered unless the tweak is already fully applied; Undo unless it
+    // is fully not-applied. Drifted shows both, with Apply relabelled "Re-apply".
+    public bool ShowApply => CanAct && State != ActionState.Applied;
+
+    public bool ShowUndo => CanAct && (State == ActionState.Applied || State == ActionState.Drifted);
+
+    public string ApplyLabel => State == ActionState.Drifted ? "Re-apply" : "Apply";
+
     public string StateText => State switch
     {
-        ActionState.Applied => "Applied",
+        ActionState.Applied => "✓ Applied",
         ActionState.NotApplied => "Not applied",
-        ActionState.Drifted => "Drifted",
-        _ => "—",
+        ActionState.Drifted => "⚠ Drifted",
+        _ when IsScript => "not yet native",
+        _ => "unknown",
     };
 
     public IBrush StateBrush => State switch
@@ -44,6 +54,14 @@ public partial class TweakItemViewModel(Tweak tweak, MainViewModel parent) : Obs
         ActionState.Drifted => new SolidColorBrush(Color.Parse("#F59E0B")),
         ActionState.NotApplied => new SolidColorBrush(Color.Parse("#242B35")),
         _ => new SolidColorBrush(Color.Parse("#1A202A")),
+    };
+
+    /// <summary>Left-edge accent so applied/drifted rows are scannable at a glance.</summary>
+    public IBrush AccentBrush => State switch
+    {
+        ActionState.Applied => new SolidColorBrush(Color.Parse("#22C55E")),
+        ActionState.Drifted => new SolidColorBrush(Color.Parse("#F59E0B")),
+        _ => Brushes.Transparent,
     };
 
     public void Redetect()
@@ -71,6 +89,7 @@ public partial class TweakItemViewModel(Tweak tweak, MainViewModel parent) : Obs
         {
             action(engine);
             Redetect();
+            parent.RefreshSummary();
             parent.SetStatus($"{Name}: {verb} → {StateText}");
         }
         catch (Exception e) when (e is InvalidOperationException or UnauthorizedAccessException or IOException)

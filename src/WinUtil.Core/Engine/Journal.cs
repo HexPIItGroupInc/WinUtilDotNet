@@ -6,7 +6,7 @@ namespace WinUtil.Core.Engine;
 /// For registry entries Path/Name identify the value; for service entries
 /// Path is the service name and Name is "StartupType".
 /// </summary>
-public sealed record JournalEntry(string TweakId, string Path, string Name, string? PreviousValue, bool Existed, string Kind = JournalEntry.RegistryKind)
+public sealed record JournalEntry(string TweakId, string Path, string Name, string? PreviousValue, bool Existed, string Kind = JournalEntry.RegistryKind, string Source = "unknown")
 {
     public const string RegistryKind = "registry";
     public const string ServiceKind = "service";

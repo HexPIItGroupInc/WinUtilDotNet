@@ -36,6 +36,10 @@ public sealed class FileJournal : IJournal
     public IReadOnlyList<JournalEntry> EntriesFor(string tweakId) =>
         entries.TryGetValue(tweakId, out var list) ? list : [];
 
+    /// <summary>All journaled tweaks and their entries — for provenance display.</summary>
+    public IReadOnlyDictionary<string, IReadOnlyList<JournalEntry>> Snapshot() =>
+        entries.ToDictionary(kv => kv.Key, kv => (IReadOnlyList<JournalEntry>)kv.Value);
+
     public void Clear(string tweakId)
     {
         if (entries.Remove(tweakId))
