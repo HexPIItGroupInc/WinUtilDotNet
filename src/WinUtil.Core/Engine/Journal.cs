@@ -3,8 +3,14 @@ namespace WinUtil.Core.Engine;
 /// <summary>
 /// What a value actually was on this machine before we changed it. The catalog's
 /// OriginalValue is a default; the journal is ground truth for undo.
+/// For registry entries Path/Name identify the value; for service entries
+/// Path is the service name and Name is "StartupType".
 /// </summary>
-public sealed record JournalEntry(string TweakId, string Path, string Name, string? PreviousValue, bool Existed);
+public sealed record JournalEntry(string TweakId, string Path, string Name, string? PreviousValue, bool Existed, string Kind = JournalEntry.RegistryKind)
+{
+    public const string RegistryKind = "registry";
+    public const string ServiceKind = "service";
+}
 
 /// <summary>Store for journal entries. File-backed implementation to follow; tests use in-memory.</summary>
 public interface IJournal

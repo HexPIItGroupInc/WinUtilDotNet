@@ -5,10 +5,10 @@ namespace WinUtil.Core.Engine;
 
 /// <summary>
 /// Applies, undoes, and detects tweaks by dispatching their declared changes to
-/// ports. Registry changes are handled natively; script escape hatches are not
-/// executed here yet (Phase 1 wires IScriptRunner behind an explicit opt-in).
+/// ports. Registry and service changes are handled natively; script escape
+/// hatches are not executed here (they are the tracked burn-down backlog).
 /// </summary>
-public sealed class TweakEngine(IRegistry registry, IJournal journal)
+public sealed class TweakEngine(IRegistry registry, IJournal journal, IServices? services = null)
 {
     /// <summary>
     /// Ground truth from the live system: Applied when every declared change
@@ -17,16 +17,13 @@ public sealed class TweakEngine(IRegistry registry, IJournal journal)
     /// </summary>
     public ActionState Detect(Tweak tweak)
     {
-        if (tweak.Registry.Count == 0)
-        {
-            return ActionState.Unknown;
-        }
-
         var applied = 0;
         var notApplied = 0;
+        var total = 0;
 
         foreach (var change in tweak.Registry)
         {
+            total++;
             var exists = registry.TryGetValue(change.Path, change.Name, out var current);
 
             if (exists && current == change.Value)
@@ -39,12 +36,32 @@ public sealed class TweakEngine(IRegistry registry, IJournal journal)
             }
         }
 
-        if (applied == tweak.Registry.Count)
+        foreach (var change in tweak.Service)
+        {
+            total++;
+            var exists = Services.TryGetStartupType(change.Name, out var current);
+
+            if (exists && current == change.StartupType)
+            {
+                applied++;
+            }
+            else if (!exists || current == change.OriginalType)
+            {
+                notApplied++;
+            }
+        }
+
+        if (total == 0)
+        {
+            return ActionState.Unknown;
+        }
+
+        if (applied == total)
         {
             return ActionState.Applied;
         }
 
-        if (notApplied == tweak.Registry.Count)
+        if (notApplied == total)
         {
             return ActionState.NotApplied;
         }
@@ -61,20 +78,27 @@ public sealed class TweakEngine(IRegistry registry, IJournal journal)
             journal.Record(new JournalEntry(tweak.Id, change.Path, change.Name, previous, existed));
             registry.SetValue(change.Path, change.Name, change.Value, change.Type);
         }
+
+        foreach (var change in tweak.Service)
+        {
+            var existed = Services.TryGetStartupType(change.Name, out var previous);
+            journal.Record(new JournalEntry(tweak.Id, change.Name, "StartupType", previous, existed, JournalEntry.ServiceKind));
+            Services.SetStartupType(change.Name, change.StartupType);
+        }
     }
 
     /// <summary>
     /// Restore from the journal when we applied this tweak on this machine;
-    /// fall back to the catalog's OriginalValue otherwise.
+    /// fall back to the catalog's declared originals otherwise.
     /// </summary>
     public void Undo(Tweak tweak)
     {
         var journaled = journal.EntriesFor(tweak.Id)
-            .ToDictionary(e => (e.Path, e.Name), e => e);
+            .ToDictionary(e => (e.Kind, e.Path, e.Name), e => e);
 
         foreach (var change in tweak.Registry)
         {
-            if (journaled.TryGetValue((change.Path, change.Name), out var entry))
+            if (journaled.TryGetValue((JournalEntry.RegistryKind, change.Path, change.Name), out var entry))
             {
                 if (entry.Existed && entry.PreviousValue is not null)
                 {
@@ -91,6 +115,24 @@ public sealed class TweakEngine(IRegistry registry, IJournal journal)
             }
         }
 
+        foreach (var change in tweak.Service)
+        {
+            if (journaled.TryGetValue((JournalEntry.ServiceKind, change.Name, "StartupType"), out var entry))
+            {
+                if (entry.Existed && entry.PreviousValue is not null)
+                {
+                    Services.SetStartupType(change.Name, entry.PreviousValue);
+                }
+            }
+            else if (change.OriginalType is not null)
+            {
+                Services.SetStartupType(change.Name, change.OriginalType);
+            }
+        }
+
         journal.Clear(tweak.Id);
     }
+
+    private IServices Services => services
+        ?? throw new InvalidOperationException("This tweak declares service changes but no IServices adapter was provided.");
 }

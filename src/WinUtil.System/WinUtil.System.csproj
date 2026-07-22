@@ -1,6 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>net10.0-windows</TargetFramework>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <Description>The only layer that touches Windows. Adapters implementing WinUtil.Core's ports against real Win32/COM/.NET APIs.</Description>
   </PropertyGroup>
   <ItemGroup>

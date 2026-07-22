@@ -27,6 +27,12 @@ jobs:
         run: dotnet build --configuration Release
 
       - name: Validate catalog end-to-end on Windows
-        run: dotnet run --project src/WinUtil.Cli --configuration Release --no-build -- validate --catalog "$env:RUNNER_TEMP\winutil\config\tweaks.json"
+        run: dotnet run --project src/WinUtil.Cli --configuration Release --no-build --framework net10.0-windows -- validate --catalog "$env:RUNNER_TEMP\winutil\config\tweaks.json"
 
-      # TODO(Phase 1): apply/detect/undo integration suite against the live registry.
+      - name: Integration suite (real registry, no PowerShell spawned)
+        run: dotnet test tests/WinUtil.Integration.Tests --configuration Release --no-build
+        env:
+          RUN_WINDOWS_INTEGRATION: "1"
+
+      - name: Detect real state of every catalog tweak on this VM
+        run: dotnet run --project src/WinUtil.Cli --configuration Release --no-build --framework net10.0-windows -- detect --all --catalog "$env:RUNNER_TEMP\winutil\config\tweaks.json"

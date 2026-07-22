@@ -2,9 +2,12 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <AssemblyName>winutil</AssemblyName>
-    <Description>Headless front-end over WinUtil.Core: list / coverage / validate anywhere; apply / detect / undo on Windows (wired in Phase 1 integration).</Description>
+    <TargetFramework></TargetFramework>
+    <TargetFrameworks>net10.0;net10.0-windows</TargetFrameworks>
+    <Description>Headless front-end over WinUtil.Core: list / coverage / validate anywhere; apply / detect / undo on Windows.</Description>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="../WinUtil.Core/WinUtil.Core.csproj" />
+    <ProjectReference Include="../WinUtil.System/WinUtil.System.csproj" Condition="'$(TargetFramework)' == 'net10.0-windows'" />
   </ItemGroup>
 </Project>
