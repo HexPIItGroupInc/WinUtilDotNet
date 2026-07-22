@@ -1,6 +1,7 @@
 # WinUtilsDotNet
 
-[![CI](https://github.com/landryjeanluc/WinUtilsDotNet/actions/workflows/ci.yml/badge.svg)](https://github.com/landryjeanluc/WinUtilsDotNet/actions/workflows/ci.yml)
+<!-- CI badge goes here once the GitHub mirror is live:
+[![CI](https://github.com/OWNER/REPO/actions/workflows/ci.yml/badge.svg)](https://github.com/OWNER/REPO/actions/workflows/ci.yml) -->
 
 A native .NET re-implementation of [Chris Titus's winutil](https://github.com/ChrisTitusTech/winutil), proving one architectural thesis:
 
