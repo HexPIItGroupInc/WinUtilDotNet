@@ -1,9 +1,9 @@
 name: Windows Integration
-# Runs on the self-hosted Windows runner (hecaton VM). Manual trigger until the
-# runner is registered and the snapshot-revert harness lands; then this gains a
-# push trigger and the real apply/detect/undo integration suite.
+# Runs on the self-hosted Windows runner "win11-backup" (hecaton VM).
 on:
   workflow_dispatch:
+  push:
+    branches: [main]
 
 jobs:
   integration:
