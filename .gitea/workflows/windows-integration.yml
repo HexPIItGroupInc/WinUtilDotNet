@@ -14,8 +14,7 @@ jobs:
       - name: Checkout
         run: |
           git init -q .
-          git remote remove origin 2>$null
-          git remote add origin ${{ github.server_url }}/${{ github.repository }}.git
+          git config remote.origin.url ${{ github.server_url }}/${{ github.repository }}.git
           git fetch -q --depth 1 origin ${{ github.sha }}
           git checkout -q -f FETCH_HEAD
 
