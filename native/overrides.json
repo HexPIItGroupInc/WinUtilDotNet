@@ -16,12 +16,34 @@
     "undo": [{ "file": "icacls.exe", "args": "\"%LocalAppData%\\Packages\\Microsoft.WindowsStore_8wekyb3d8bbwe\\LocalState\\store.db\" /grant Everyone:F" }]
   },
   "WPFTweaksWidget": {
-    "apply": [
+    "preApply": [
       { "file": "taskkill.exe", "args": "/f /im Widgets.exe", "ignoreExitCode": true },
       { "file": "taskkill.exe", "args": "/f /im WidgetService.exe", "ignoreExitCode": true }
     ],
     "appxRemove": ["Microsoft.WidgetsPlatformRuntime", "MicrosoftWindows.Client.WebExperience"],
+    "apply": [
+      { "file": "taskkill.exe", "args": "/f /im explorer.exe", "ignoreExitCode": true },
+      { "file": "explorer.exe", "args": "", "ignoreExitCode": true }
+    ],
     "undo": []
+  },
+  "WPFTweaksDeleteTempFiles": {
+    "deletePaths": ["%Temp%\\*", "%SystemRoot%\\Temp\\*"],
+    "undo": []
+  },
+  "WPFTweaksBlockAdobeNet": {
+    "hostsBlock": {
+      "url": "https://github.com/Ruddernation-Designs/Adobe-URL-Block-List/raw/refs/heads/master/hosts",
+      "removeFromMarker": "#New Ver"
+    },
+    "apply": [{ "file": "ipconfig.exe", "args": "/flushdns" }],
+    "undo": [{ "file": "ipconfig.exe", "args": "/flushdns" }]
+  },
+  "WPFTweaksRazerBlock": {
+    "ensureDirs": ["%SystemRoot%\\Installer\\Razer"],
+    "deletePaths": ["%SystemRoot%\\Installer\\Razer\\*"],
+    "apply": [{ "file": "icacls.exe", "args": "\"%SystemRoot%\\Installer\\Razer\" /deny Everyone:(W)" }],
+    "undo": [{ "file": "icacls.exe", "args": "\"%SystemRoot%\\Installer\\Razer\" /remove:d Everyone" }]
   },
   "WPFTweaksDiskCleanup": {
     "apply": [

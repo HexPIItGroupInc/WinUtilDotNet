@@ -26,9 +26,13 @@ public static class CatalogLoader
             var over = overlay.TryGetValue(entry.Name, out var o) ? o : null;
             tweaks.Add(new Tweak
             {
+                PreCommands = over?.PreApply ?? [],
                 Commands = over?.Apply ?? [],
                 UndoCommands = over?.Undo ?? [],
                 AppxRemove = over?.AppxRemove ?? [],
+                DeletePaths = over?.DeletePaths ?? [],
+                EnsureDirs = over?.EnsureDirs ?? [],
+                HostsBlock = over?.HostsBlock,
                 ScriptsCovered = over is not null,
                 Id = entry.Name,
                 Content = GetString(e, "Content") ?? entry.Name,
@@ -85,7 +89,14 @@ public static class CatalogLoader
         return packages;
     }
 
-    private sealed record OverlayEntry(IReadOnlyList<CommandAction> Apply, IReadOnlyList<CommandAction> Undo, IReadOnlyList<string> AppxRemove);
+    private sealed record OverlayEntry(
+        IReadOnlyList<CommandAction> PreApply,
+        IReadOnlyList<CommandAction> Apply,
+        IReadOnlyList<CommandAction> Undo,
+        IReadOnlyList<string> AppxRemove,
+        IReadOnlyList<string> DeletePaths,
+        IReadOnlyList<string> EnsureDirs,
+        HostsBlock? HostsBlock);
 
     private static Dictionary<string, OverlayEntry> LoadOverlay(string overlayJson)
     {
@@ -94,10 +105,24 @@ public static class CatalogLoader
 
         foreach (var entry in doc.RootElement.EnumerateObject())
         {
+            HostsBlock? hosts = null;
+            if (entry.Value.TryGetProperty("hostsBlock", out var h) && h.ValueKind == JsonValueKind.Object)
+            {
+                hosts = new HostsBlock
+                {
+                    Url = GetString(h, "url") ?? throw new FormatException("hostsBlock is missing 'url'."),
+                    RemoveFromMarker = GetString(h, "removeFromMarker") ?? throw new FormatException("hostsBlock is missing 'removeFromMarker'."),
+                };
+            }
+
             overlay[entry.Name] = new OverlayEntry(
+                ReadArray(entry.Value, "preApply", ReadCommand),
                 ReadArray(entry.Value, "apply", ReadCommand),
                 ReadArray(entry.Value, "undo", ReadCommand),
-                ReadArray(entry.Value, "appxRemove", e => e.GetString() ?? ""));
+                ReadArray(entry.Value, "appxRemove", e => e.GetString() ?? ""),
+                ReadArray(entry.Value, "deletePaths", e => e.GetString() ?? ""),
+                ReadArray(entry.Value, "ensureDirs", e => e.GetString() ?? ""),
+                hosts);
         }
 
         return overlay;

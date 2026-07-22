@@ -26,13 +26,25 @@ public sealed record Tweak
 
     public IReadOnlyList<string> UndoScript { get; init; } = [];
 
-    /// <summary>Native overlay commands replacing this tweak's scripts (ADR-0004).</summary>
+    /// <summary>Overlay commands that must run BEFORE typed actions (e.g. killing a process that would block an Appx removal).</summary>
+    public IReadOnlyList<CommandAction> PreCommands { get; init; } = [];
+
+    /// <summary>Overlay commands that run AFTER typed actions (e.g. flushdns after a hosts edit). ADR-0004.</summary>
     public IReadOnlyList<CommandAction> Commands { get; init; } = [];
 
     public IReadOnlyList<CommandAction> UndoCommands { get; init; } = [];
 
     /// <summary>Overlay: Appx identity-name patterns to remove on apply (removal has no undo).</summary>
     public IReadOnlyList<string> AppxRemove { get; init; } = [];
+
+    /// <summary>Overlay: trailing-\* globs whose contents are deleted best-effort on apply.</summary>
+    public IReadOnlyList<string> DeletePaths { get; init; } = [];
+
+    /// <summary>Overlay: directories created if missing on apply.</summary>
+    public IReadOnlyList<string> EnsureDirs { get; init; } = [];
+
+    /// <summary>Overlay: hosts-file blocklist action.</summary>
+    public HostsBlock? HostsBlock { get; init; }
 
     /// <summary>True when a native overlay entry covers this tweak's scripts.</summary>
     public bool ScriptsCovered { get; init; }
