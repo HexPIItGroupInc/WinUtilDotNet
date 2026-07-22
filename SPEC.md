@@ -14,7 +14,7 @@ The method matters as much as the architecture — it's the difference between t
 
 - **Spec before code.** This document was drafted in the HexPi knowledge vault (Obsidian) under a spec-first convention — `draft → human red-pen → approved → implemented` — before any C# exists. Correcting a paragraph is cheaper than correcting a diff; an LLM pointed at 200k lines never got that chance.
 - **Coordinated agent sessions.** Work runs as parallel Claude Code sessions coordinated through a shared WIP claim board in the vault, so every session (and the human) can see who's touching what. Each finished task graduates with a written outcome and a change report closing against this spec.
-- **A real integration rig.** Unit tests for `WinUtil.Core` run on Linux; integration runs against two Windows VMs on `hecaton` (the HexPi Incus host), snapshot-reverted between runs — so "the tweak applied, detected, and undid cleanly" is a machine-checked fact on a clean OS, not a hope.
+- **A real integration rig.** Unit tests for `WinUtil.Core` run on Linux; integration runs on a dedicated, disposable Windows 11 test VM on `hecaton` (the HexPi Incus host) with a self-hosted CI runner — so "the tweak applied, detected, and undid cleanly" is a machine-checked fact on a real Windows install, not a hope. Snapshot-revert bracketing can be added if test pollution ever becomes a problem.
 - **Acceptance checks, not vibes.** "Done" is the checklist at the bottom of this document, every line something a session can verify with a command.
 
 ## Goals
@@ -69,7 +69,7 @@ The proof-of-concept is a Phase 1 subset: registry + service + appx actions nati
 
 - [ ] `dotnet test` on `WinUtil.Core` passes on Linux (proves zero Windows deps in Core).
 - [ ] CLI parses upstream `config/tweaks.json` **unchanged**, lists all tweaks with their action breakdown.
-- [ ] On a snapshot-reverted Windows VM on `hecaton`: applying a registry tweak spawns no `powershell.exe`/`pwsh.exe` process and `detect` reports `Applied`.
+- [ ] On the Windows test VM on `hecaton`: applying a registry tweak spawns no `powershell.exe`/`pwsh.exe` process and `detect` reports `Applied`.
 - [ ] `undo` restores original values from the journal; `detect` reports `NotApplied`.
 - [ ] Changing an applied tweak's key externally makes `detect` report `Drifted`.
 - [ ] CLI reports the coverage metric: % of catalog entries executable natively vs. escape-hatch.
