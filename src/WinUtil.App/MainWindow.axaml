@@ -37,7 +37,14 @@
                    Foreground="#5B6672" Margin="12,4,0,8" />
         <ListBox Classes="nav" Background="Transparent"
                  ItemsSource="{Binding Categories}"
-                 SelectedItem="{Binding SelectedCategory, Mode=TwoWay}" />
+                 SelectedItem="{Binding SelectedCategory, Mode=TwoWay}"
+                 ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+          <ListBox.ItemTemplate>
+            <DataTemplate x:DataType="x:String">
+              <TextBlock Text="{Binding}" TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding}" />
+            </DataTemplate>
+          </ListBox.ItemTemplate>
+        </ListBox>
       </DockPanel>
     </Border>
 
