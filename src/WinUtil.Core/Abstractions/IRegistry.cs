@@ -14,4 +14,7 @@ public interface IRegistry
     void SetValue(string path, string name, string value, string type);
 
     void DeleteValue(string path, string name);
+
+    /// <summary>Delete a key and its entire subtree. Missing keys are a no-op.</summary>
+    void DeleteKeyTree(string path);
 }

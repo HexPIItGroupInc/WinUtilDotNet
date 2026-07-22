@@ -63,6 +63,21 @@ public sealed class RegistryIntegrationTests : IDisposable
     }
 
     [SkippableFact]
+    public void DeleteKeyTree_removes_real_subtrees_and_tolerates_missing_keys()
+    {
+        Skip.IfNot(Enabled, "RUN_WINDOWS_INTEGRATION != 1");
+
+        var registry = new WindowsRegistry();
+        registry.SetValue(TestKey + @"\Tree\Deep", "Value", "1", "DWord");
+
+        registry.DeleteKeyTree(TestKey + @"\Tree");
+        Assert.False(registry.TryGetValue(TestKey + @"\Tree\Deep", "Value", out _));
+
+        // Missing key: no-op, no throw.
+        registry.DeleteKeyTree(TestKey + @"\Tree");
+    }
+
+    [SkippableFact]
     public void Journal_survives_process_style_reload_and_restores_preexisting_values()
     {
         Skip.IfNot(Enabled, "RUN_WINDOWS_INTEGRATION != 1");

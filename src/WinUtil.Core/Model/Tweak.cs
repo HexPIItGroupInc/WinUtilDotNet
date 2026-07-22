@@ -46,6 +46,12 @@ public sealed record Tweak
     /// <summary>Overlay: hosts-file blocklist action.</summary>
     public HostsBlock? HostsBlock { get; init; }
 
+    /// <summary>Overlay: registry key trees deleted on apply, BEFORE typed registry writes.</summary>
+    public IReadOnlyList<string> RegistryDeleteKeys { get; init; } = [];
+
+    /// <summary>Overlay: registry key trees deleted on undo, after typed restores.</summary>
+    public IReadOnlyList<string> UndoRegistryDeleteKeys { get; init; } = [];
+
     /// <summary>True when a native overlay entry covers this tweak's scripts.</summary>
     public bool ScriptsCovered { get; init; }
 

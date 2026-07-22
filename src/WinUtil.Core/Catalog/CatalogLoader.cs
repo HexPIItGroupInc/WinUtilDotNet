@@ -33,6 +33,8 @@ public static class CatalogLoader
                 DeletePaths = over?.DeletePaths ?? [],
                 EnsureDirs = over?.EnsureDirs ?? [],
                 HostsBlock = over?.HostsBlock,
+                RegistryDeleteKeys = over?.RegistryDeleteKeys ?? [],
+                UndoRegistryDeleteKeys = over?.UndoRegistryDeleteKeys ?? [],
                 ScriptsCovered = over is not null,
                 Id = entry.Name,
                 Content = GetString(e, "Content") ?? entry.Name,
@@ -40,14 +42,7 @@ public static class CatalogLoader
                 Category = GetString(e, "category"),
                 Panel = GetString(e, "panel"),
                 Link = GetString(e, "link"),
-                Registry = ReadArray(e, "registry", r => new RegistryChange
-                {
-                    Path = GetString(r, "Path") ?? throw MissingField(entry.Name, "registry.Path"),
-                    Name = GetString(r, "Name") ?? throw MissingField(entry.Name, "registry.Name"),
-                    Value = GetString(r, "Value") ?? throw MissingField(entry.Name, "registry.Value"),
-                    Type = GetString(r, "Type") ?? throw MissingField(entry.Name, "registry.Type"),
-                    OriginalValue = GetString(r, "OriginalValue"),
-                }),
+                Registry = [.. ReadArray(e, "registry", r => ReadRegistryChange(r, entry.Name)), .. over?.Registry ?? []],
                 Service = ReadArray(e, "service", s => new ServiceChange
                 {
                     Name = GetString(s, "Name") ?? throw MissingField(entry.Name, "service.Name"),
@@ -89,6 +84,15 @@ public static class CatalogLoader
         return packages;
     }
 
+    private static RegistryChange ReadRegistryChange(JsonElement r, string owner) => new()
+    {
+        Path = GetString(r, "Path") ?? throw MissingField(owner, "registry.Path"),
+        Name = GetString(r, "Name") ?? throw MissingField(owner, "registry.Name"),
+        Value = GetString(r, "Value") ?? throw MissingField(owner, "registry.Value"),
+        Type = GetString(r, "Type") ?? throw MissingField(owner, "registry.Type"),
+        OriginalValue = GetString(r, "OriginalValue"),
+    };
+
     private sealed record OverlayEntry(
         IReadOnlyList<CommandAction> PreApply,
         IReadOnlyList<CommandAction> Apply,
@@ -96,7 +100,10 @@ public static class CatalogLoader
         IReadOnlyList<string> AppxRemove,
         IReadOnlyList<string> DeletePaths,
         IReadOnlyList<string> EnsureDirs,
-        HostsBlock? HostsBlock);
+        HostsBlock? HostsBlock,
+        IReadOnlyList<RegistryChange> Registry,
+        IReadOnlyList<string> RegistryDeleteKeys,
+        IReadOnlyList<string> UndoRegistryDeleteKeys);
 
     private static Dictionary<string, OverlayEntry> LoadOverlay(string overlayJson)
     {
@@ -122,7 +129,10 @@ public static class CatalogLoader
                 ReadArray(entry.Value, "appxRemove", e => e.GetString() ?? ""),
                 ReadArray(entry.Value, "deletePaths", e => e.GetString() ?? ""),
                 ReadArray(entry.Value, "ensureDirs", e => e.GetString() ?? ""),
-                hosts);
+                hosts,
+                ReadArray(entry.Value, "registry", r => ReadRegistryChange(r, entry.Name)),
+                ReadArray(entry.Value, "registryDeleteKeys", e => e.GetString() ?? ""),
+                ReadArray(entry.Value, "undoRegistryDeleteKeys", e => e.GetString() ?? ""));
         }
 
         return overlay;

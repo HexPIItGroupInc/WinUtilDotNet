@@ -77,6 +77,13 @@ public sealed class TweakEngine(IRegistry registry, IJournal journal, IServices?
             RunCommand(command);
         }
 
+        // Tree deletes come before typed writes: a tweak may flush a key tree
+        // and then write fresh values inside it (e.g. Explorer's view Bags).
+        foreach (var path in tweak.RegistryDeleteKeys)
+        {
+            registry.DeleteKeyTree(path);
+        }
+
         foreach (var change in tweak.Registry)
         {
             var existed = registry.TryGetValue(change.Path, change.Name, out var previous);
@@ -167,6 +174,11 @@ public sealed class TweakEngine(IRegistry registry, IJournal journal, IServices?
             {
                 Services.SetStartupType(change.Name, change.OriginalType);
             }
+        }
+
+        foreach (var path in tweak.UndoRegistryDeleteKeys)
+        {
+            registry.DeleteKeyTree(path);
         }
 
         if (tweak.HostsBlock is { } block)

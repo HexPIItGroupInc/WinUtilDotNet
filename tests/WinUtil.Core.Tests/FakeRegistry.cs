@@ -24,4 +24,14 @@ public sealed class FakeRegistry : IRegistry
 
     public void DeleteValue(string path, string name) =>
         values.Remove((path, name));
+
+    public void DeleteKeyTree(string path)
+    {
+        foreach (var key in values.Keys.Where(k =>
+                     k.Path.Equals(path, StringComparison.OrdinalIgnoreCase)
+                     || k.Path.StartsWith(path + "\\", StringComparison.OrdinalIgnoreCase)).ToList())
+        {
+            values.Remove(key);
+        }
+    }
 }

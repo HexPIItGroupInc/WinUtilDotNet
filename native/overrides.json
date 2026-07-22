@@ -27,6 +27,25 @@
     ],
     "undo": []
   },
+  "WPFTweaksDisableExplorerAutoDiscovery": {
+    "registryDeleteKeys": [
+      "HKCU:\\Software\\Classes\\Local Settings\\Software\\Microsoft\\Windows\\Shell\\Bags",
+      "HKCU:\\Software\\Classes\\Local Settings\\Software\\Microsoft\\Windows\\Shell\\BagMRU"
+    ],
+    "registry": [
+      {
+        "Path": "HKCU:\\Software\\Classes\\Local Settings\\Software\\Microsoft\\Windows\\Shell\\Bags\\AllFolders\\Shell",
+        "Name": "FolderType",
+        "Value": "NotSpecified",
+        "Type": "String"
+      }
+    ],
+    "undoRegistryDeleteKeys": [
+      "HKCU:\\Software\\Classes\\Local Settings\\Software\\Microsoft\\Windows\\Shell\\Bags",
+      "HKCU:\\Software\\Classes\\Local Settings\\Software\\Microsoft\\Windows\\Shell\\BagMRU"
+    ],
+    "undo": []
+  },
   "WPFTweaksDeleteTempFiles": {
     "deletePaths": ["%Temp%\\*", "%SystemRoot%\\Temp\\*"],
     "undo": []

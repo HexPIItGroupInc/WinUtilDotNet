@@ -55,6 +55,12 @@ public sealed class WindowsRegistry : IRegistry
         key?.DeleteValue(name, throwOnMissingValue: false);
     }
 
+    public void DeleteKeyTree(string path)
+    {
+        var (hive, subKey) = Split(path);
+        hive.DeleteSubKeyTree(subKey, throwOnMissingSubKey: false);
+    }
+
     private static (RegistryKey Hive, string SubKey) Split(string path)
     {
         var separator = path.IndexOf('\\', StringComparison.Ordinal);

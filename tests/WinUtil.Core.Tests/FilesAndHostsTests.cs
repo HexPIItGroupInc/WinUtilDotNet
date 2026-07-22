@@ -81,6 +81,8 @@ public class FilesAndHostsTests
         public void SetValue(string path, string name, string value, string type) => log.Add("reg:set");
 
         public void DeleteValue(string path, string name) => log.Add("reg:del");
+
+        public void DeleteKeyTree(string path) => log.Add($"reg:delTree:{path}");
     }
 
     private sealed class LoggingFiles(List<string> log) : IFileSystem
