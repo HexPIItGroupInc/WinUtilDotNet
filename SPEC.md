@@ -8,6 +8,15 @@ That outcome was an architecture failure, not a capability limit. winutil is sma
 
 This project takes the opposite bet: **keep the catalogs as the contract, rewrite only the engine** — and replace PowerShell cmdlets with the Win32/COM/.NET APIs they wrap. Those APIs (`Microsoft.Win32.Registry`, the Service Control Manager, Task Scheduler COM, `Windows.Management.Deployment`, the winget COM API, DISM/wimgapi) are what PowerShell itself calls; they are far less likely to be taken away than cmdlets. Target: full capability in ~10–20k lines of C#, consuming winutil's existing `config/*.json` **unchanged**.
 
+## How this is being built
+
+The method matters as much as the architecture — it's the difference between this and the 2-billion-token attempt:
+
+- **Spec before code.** This document was drafted in the HexPi knowledge vault (Obsidian) under a spec-first convention — `draft → human red-pen → approved → implemented` — before any C# exists. Correcting a paragraph is cheaper than correcting a diff; an LLM pointed at 200k lines never got that chance.
+- **Coordinated agent sessions.** Work runs as parallel Claude Code sessions coordinated through a shared WIP claim board in the vault, so every session (and the human) can see who's touching what. Each finished task graduates with a written outcome and a change report closing against this spec.
+- **A real integration rig.** Unit tests for `WinUtil.Core` run on Linux; integration runs against two Windows VMs on `hecaton` (the HexPi Incus host), snapshot-reverted between runs — so "the tweak applied, detected, and undid cleanly" is a machine-checked fact on a clean OS, not a hope.
+- **Acceptance checks, not vibes.** "Done" is the checklist at the bottom of this document, every line something a session can verify with a command.
+
 ## Goals
 
 - A layered .NET implementation of winutil's capabilities with no runtime dependency on PowerShell (a tracked, shrinking compat layer during migration).
@@ -60,7 +69,7 @@ The proof-of-concept is a Phase 1 subset: registry + service + appx actions nati
 
 - [ ] `dotnet test` on `WinUtil.Core` passes on Linux (proves zero Windows deps in Core).
 - [ ] CLI parses upstream `config/tweaks.json` **unchanged**, lists all tweaks with their action breakdown.
-- [ ] On a snapshot-reverted Windows VM: applying a registry tweak spawns no `powershell.exe`/`pwsh.exe` process and `detect` reports `Applied`.
+- [ ] On a snapshot-reverted Windows VM on `hecaton`: applying a registry tweak spawns no `powershell.exe`/`pwsh.exe` process and `detect` reports `Applied`.
 - [ ] `undo` restores original values from the journal; `detect` reports `NotApplied`.
 - [ ] Changing an applied tweak's key externally makes `detect` report `Drifted`.
 - [ ] CLI reports the coverage metric: % of catalog entries executable natively vs. escape-hatch.
