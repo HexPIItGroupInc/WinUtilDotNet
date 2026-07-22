@@ -66,6 +66,14 @@ public sealed partial class WindowsServices : IServices
             var service = OpenServiceW(scm, serviceName, ServiceChangeConfig | ServiceQueryConfig);
             if (service == IntPtr.Zero)
             {
+                const int ErrorServiceDoesNotExist = 1060;
+                if (Marshal.GetLastWin32Error() == ErrorServiceDoesNotExist)
+                {
+                    // Not present on this Windows edition — upstream's Set-Service
+                    // errors non-terminating here; we skip, matching that.
+                    return;
+                }
+
                 throw new Win32Exception();
             }
 

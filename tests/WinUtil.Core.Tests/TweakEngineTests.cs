@@ -88,6 +88,24 @@ public class TweakEngineTests
     }
 
     [Fact]
+    public void Reapplying_then_undo_restores_the_true_original_not_the_second_apply()
+    {
+        var registry = new FakeRegistry();
+        var engine = new TweakEngine(registry, new InMemoryJournal());
+        var tweak = RegistryTweak();
+        registry.SetValue(@"HKLM:\A", "X", "7", "DWord");
+
+        // Apply twice without an undo in between — must not crash and must not
+        // lose the true pre-tweak value (7).
+        engine.Apply(tweak);
+        engine.Apply(tweak);
+        engine.Undo(tweak);
+
+        Assert.True(registry.TryGetValue(@"HKLM:\A", "X", out var restored));
+        Assert.Equal("7", restored);
+    }
+
+    [Fact]
     public void Tweak_with_no_typed_changes_is_Unknown()
     {
         var engine = new TweakEngine(new FakeRegistry(), new InMemoryJournal());

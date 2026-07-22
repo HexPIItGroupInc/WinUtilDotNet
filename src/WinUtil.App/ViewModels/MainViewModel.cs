@@ -139,7 +139,8 @@ public partial class MainViewModel : ObservableObject
             new WinUtil.System.ProcessCommandRunner(),
             new WinUtil.System.WindowsAppx(),
             new WinUtil.System.NativeFileSystem(),
-            new WinUtil.System.HostsFileBlocker());
+            new WinUtil.System.HostsFileBlocker(),
+            new WinUtil.System.WindowsTokenProvider());
 #else
         return null;
 #endif

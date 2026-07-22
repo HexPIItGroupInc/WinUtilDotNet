@@ -25,7 +25,14 @@ public sealed class WindowsRegistry : IRegistry
             return false;
         }
 
-        value = Convert.ToString(raw, CultureInfo.InvariantCulture);
+        // Normalize to the catalog's string representation so comparisons round-trip:
+        // byte[] → hex (matches Binary Value strings), string[] → NUL-joined (MultiString).
+        value = raw switch
+        {
+            byte[] bytes => Convert.ToHexString(bytes),
+            string[] parts => string.Join('\0', parts),
+            _ => Convert.ToString(raw, CultureInfo.InvariantCulture),
+        };
         return true;
     }
 

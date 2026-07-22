@@ -27,6 +27,68 @@
     ],
     "undo": []
   },
+  "WPFTweaksDisplay": {
+    "registry": [
+      {
+        "Path": "HKCU:\\Control Panel\\Desktop",
+        "Name": "UserPreferencesMask",
+        "Value": "9012038010000000",
+        "Type": "Binary"
+      }
+    ],
+    "undo": []
+  },
+  "WPFTweaksDisableIPv6": {
+    "registry": [
+      {
+        "Path": "HKLM:\\SYSTEM\\CurrentControlSet\\Services\\Tcpip6\\Parameters",
+        "Name": "DisabledComponents",
+        "Value": "255",
+        "Type": "DWord"
+      }
+    ],
+    "undo": []
+  },
+  "WPFTweaksServices": {
+    "registry": [
+      {
+        "Path": "HKLM:\\SYSTEM\\CurrentControlSet\\Control",
+        "Name": "SvcHostSplitThresholdInKB",
+        "Value": "{{RAM_KB}}",
+        "Type": "DWord"
+      }
+    ],
+    "undo": []
+  },
+  "WPFTweaksRightClickMenu": {
+    "registry": [
+      {
+        "Path": "HKCU:\\Software\\Classes\\CLSID\\{86ca1aa0-34aa-4e8b-a509-50c905bae2a2}\\InprocServer32",
+        "Name": "",
+        "Value": "",
+        "Type": "String"
+      }
+    ],
+    "apply": [
+      { "file": "taskkill.exe", "args": "/f /im explorer.exe", "ignoreExitCode": true },
+      { "file": "explorer.exe", "args": "", "ignoreExitCode": true }
+    ],
+    "undoRegistryDeleteKeys": ["HKCU:\\Software\\Classes\\CLSID\\{86ca1aa0-34aa-4e8b-a509-50c905bae2a2}"],
+    "undo": [
+      { "file": "taskkill.exe", "args": "/f /im explorer.exe", "ignoreExitCode": true },
+      { "file": "explorer.exe", "args": "", "ignoreExitCode": true }
+    ]
+  },
+  "WPFToggleDarkMode": {
+    "apply": [
+      { "file": "taskkill.exe", "args": "/f /im explorer.exe", "ignoreExitCode": true },
+      { "file": "explorer.exe", "args": "", "ignoreExitCode": true }
+    ],
+    "undo": [
+      { "file": "taskkill.exe", "args": "/f /im explorer.exe", "ignoreExitCode": true },
+      { "file": "explorer.exe", "args": "", "ignoreExitCode": true }
+    ]
+  },
   "WPFTweaksDisableExplorerAutoDiscovery": {
     "registryDeleteKeys": [
       "HKCU:\\Software\\Classes\\Local Settings\\Software\\Microsoft\\Windows\\Shell\\Bags",

@@ -8,8 +8,11 @@ namespace WinUtil.Core.Engine;
 /// ports. Registry and service changes are handled natively; script escape
 /// hatches are not executed here (they are the tracked burn-down backlog).
 /// </summary>
-public sealed class TweakEngine(IRegistry registry, IJournal journal, IServices? services = null, ICommandRunner? commands = null, IAppx? appx = null, IFileSystem? files = null, IHostsBlocker? hosts = null)
+public sealed class TweakEngine(IRegistry registry, IJournal journal, IServices? services = null, ICommandRunner? commands = null, IAppx? appx = null, IFileSystem? files = null, IHostsBlocker? hosts = null, ITokenProvider? tokens = null)
 {
+    private string Expand(string value) =>
+        tokens is null || !value.Contains("{{", StringComparison.Ordinal) ? value : tokens.Resolve(value);
+
     /// <summary>
     /// Ground truth from the live system: Applied when every declared change
     /// matches its target, NotApplied when every change matches its original
@@ -26,7 +29,7 @@ public sealed class TweakEngine(IRegistry registry, IJournal journal, IServices?
             total++;
             var exists = registry.TryGetValue(change.Path, change.Name, out var current);
 
-            if (exists && current == change.Value)
+            if (exists && current == Expand(change.Value))
             {
                 applied++;
             }
@@ -38,14 +41,22 @@ public sealed class TweakEngine(IRegistry registry, IJournal journal, IServices?
 
         foreach (var change in tweak.Service)
         {
-            total++;
             var exists = Services.TryGetStartupType(change.Name, out var current);
 
-            if (exists && current == change.StartupType)
+            // A service absent on this Windows edition is not applicable — it
+            // can neither be applied nor drifted, so it does not count.
+            if (!exists)
+            {
+                continue;
+            }
+
+            total++;
+
+            if (current == change.StartupType)
             {
                 applied++;
             }
-            else if (!exists || current == change.OriginalType)
+            else if (current == change.OriginalType)
             {
                 notApplied++;
             }
@@ -84,17 +95,30 @@ public sealed class TweakEngine(IRegistry registry, IJournal journal, IServices?
             registry.DeleteKeyTree(path);
         }
 
+        // Re-applying without an undo must not overwrite the first-captured
+        // original in the journal — that is the true pre-tweak state.
+        var journaled = new HashSet<(string Kind, string Path, string Name)>(
+            journal.EntriesFor(tweak.Id).Select(e => (e.Kind, e.Path, e.Name)));
+
         foreach (var change in tweak.Registry)
         {
-            var existed = registry.TryGetValue(change.Path, change.Name, out var previous);
-            journal.Record(new JournalEntry(tweak.Id, change.Path, change.Name, previous, existed));
-            registry.SetValue(change.Path, change.Name, change.Value, change.Type);
+            if (journaled.Add((JournalEntry.RegistryKind, change.Path, change.Name)))
+            {
+                var existed = registry.TryGetValue(change.Path, change.Name, out var previous);
+                journal.Record(new JournalEntry(tweak.Id, change.Path, change.Name, previous, existed));
+            }
+
+            registry.SetValue(change.Path, change.Name, Expand(change.Value), change.Type);
         }
 
         foreach (var change in tweak.Service)
         {
-            var existed = Services.TryGetStartupType(change.Name, out var previous);
-            journal.Record(new JournalEntry(tweak.Id, change.Name, "StartupType", previous, existed, JournalEntry.ServiceKind));
+            if (journaled.Add((JournalEntry.ServiceKind, change.Name, "StartupType")))
+            {
+                var existed = Services.TryGetStartupType(change.Name, out var previous);
+                journal.Record(new JournalEntry(tweak.Id, change.Name, "StartupType", previous, existed, JournalEntry.ServiceKind));
+            }
+
             Services.SetStartupType(change.Name, change.StartupType);
         }
 
@@ -139,8 +163,11 @@ public sealed class TweakEngine(IRegistry registry, IJournal journal, IServices?
     /// </summary>
     public void Undo(Tweak tweak)
     {
+        // First entry per key wins: it holds the true original captured before
+        // any (possibly repeated) apply.
         var journaled = journal.EntriesFor(tweak.Id)
-            .ToDictionary(e => (e.Kind, e.Path, e.Name), e => e);
+            .GroupBy(e => (e.Kind, e.Path, e.Name))
+            .ToDictionary(g => g.Key, g => g.First());
 
         foreach (var change in tweak.Registry)
         {
@@ -199,10 +226,11 @@ public sealed class TweakEngine(IRegistry registry, IJournal journal, IServices?
         var runner = commands
             ?? throw new InvalidOperationException("This tweak declares overlay commands but no ICommandRunner was provided.");
 
-        var exitCode = runner.Run(command);
+        var resolved = command with { File = Expand(command.File), Args = Expand(command.Args) };
+        var exitCode = runner.Run(resolved);
         if (exitCode != 0 && !command.IgnoreExitCode)
         {
-            throw new InvalidOperationException($"Command '{command.File} {command.Args}' exited with code {exitCode}.");
+            throw new InvalidOperationException($"Command '{resolved.File} {resolved.Args}' exited with code {exitCode}.");
         }
     }
 
