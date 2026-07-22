@@ -1,12 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <assembly manifestVersion="1.0" xmlns="urn:schemas-microsoft-com:asm.v1">
   <assemblyIdentity version="1.0.0.0" name="WinUtil.App" />
-  <!-- A system tweak tool writes HKLM, services, and Appx — it must be elevated,
-       which also makes the shared %ProgramData% journal writable. -->
+  <!-- asInvoker, not requireAdministrator: a forced-elevated window cannot be
+       driven over VNC (UIPI blocks medium-integrity input into a high-integrity
+       window). The shared journal is already writable via its Users:Modify ACL,
+       so elevation is only needed for HKLM/service/appx ops — those surface a
+       clear per-action error when run non-elevated. Launch "as administrator"
+       (RDP/console) for full privileged operation. -->
   <trustInfo xmlns="urn:schemas-microsoft-com:asm.v3">
     <security>
       <requestedPrivileges>
-        <requestedExecutionLevel level="requireAdministrator" uiAccess="false" />
+        <requestedExecutionLevel level="asInvoker" uiAccess="false" />
       </requestedPrivileges>
     </security>
   </trustInfo>
