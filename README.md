@@ -1,5 +1,7 @@
 # WinUtilsDotNet
 
+[![CI](https://github.com/landryjeanluc/WinUtilsDotNet/actions/workflows/ci.yml/badge.svg)](https://github.com/landryjeanluc/WinUtilsDotNet/actions/workflows/ci.yml)
+
 A native .NET re-implementation of [Chris Titus's winutil](https://github.com/ChrisTitusTech/winutil), proving one architectural thesis:
 
 > winutil is small because it is **data-driven** — its tweaks are JSON catalog entries, not code. A .NET rewrite should keep those catalogs as the contract and rewrite only the *engine*, replacing PowerShell cmdlets with the Win32/COM/.NET APIs they wrap. That hedges against PowerShell being restricted — in a few thousand lines, not the ~200k an unstructured LLM rewrite produced.
