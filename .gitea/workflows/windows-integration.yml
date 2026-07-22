@@ -9,16 +9,25 @@ jobs:
   integration:
     runs-on: [self-hosted, windows]
     steps:
-      - uses: actions/checkout@v4
+      # Plain-git checkout: host runner has MinGit but no node, so
+      # github-hosted actions (checkout/setup-*) are off the menu by design.
+      - name: Checkout
+        run: |
+          git init -q .
+          git remote remove origin 2>$null
+          git remote add origin ${{ github.server_url }}/${{ github.repository }}.git
+          git fetch -q --depth 1 origin ${{ github.sha }}
+          git checkout -q -f FETCH_HEAD
 
       - name: Fetch upstream winutil catalogs
-        run: git clone --depth 1 https://github.com/ChrisTitusTech/winutil.git $env:RUNNER_TEMP\winutil
+        run: |
+          if (Test-Path "$env:RUNNER_TEMP\winutil") { Remove-Item -Recurse -Force "$env:RUNNER_TEMP\winutil" }
+          git clone -q --depth 1 https://github.com/ChrisTitusTech/winutil.git "$env:RUNNER_TEMP\winutil"
 
       - name: Build
         run: dotnet build --configuration Release
 
       - name: Validate catalog end-to-end on Windows
-        run: dotnet run --project src/WinUtil.Cli --configuration Release --no-build -- validate --catalog $env:RUNNER_TEMP\winutil\config\tweaks.json
+        run: dotnet run --project src/WinUtil.Cli --configuration Release --no-build -- validate --catalog "$env:RUNNER_TEMP\winutil\config\tweaks.json"
 
-      # TODO(Phase 1): apply/detect/undo integration suite against the live
-      # registry, with host-side snapshot revert bracketing the run.
+      # TODO(Phase 1): apply/detect/undo integration suite against the live registry.

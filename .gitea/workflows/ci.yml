@@ -9,12 +9,20 @@ jobs:
     runs-on: ubuntu-latest
     container: mcr.microsoft.com/dotnet/sdk:10.0
     steps:
-      - uses: actions/checkout@v4
+      # Plain-git checkout: no dependency on github.com-hosted actions (which
+      # also require node inside the job container).
+      - name: Checkout
+        run: |
+          command -v git >/dev/null || (apt-get update -qq && apt-get install -y -qq git)
+          git init -q .
+          git remote add origin ${{ github.server_url }}/${{ github.repository }}.git
+          git fetch -q --depth 1 origin ${{ github.sha }}
+          git checkout -q FETCH_HEAD
 
       # Catalog-as-contract: tests validate against the real, unmodified
       # upstream catalogs on every run.
       - name: Fetch upstream winutil catalogs
-        run: git clone --depth 1 https://github.com/ChrisTitusTech/winutil.git /tmp/winutil
+        run: git clone -q --depth 1 https://github.com/ChrisTitusTech/winutil.git /tmp/winutil
 
       - name: Build (warnings are errors)
         run: dotnet build --configuration Release
