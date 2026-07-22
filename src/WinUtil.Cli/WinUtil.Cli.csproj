@@ -1,0 +1,10 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <AssemblyName>winutil</AssemblyName>
+    <Description>Headless front-end over WinUtil.Core: list / coverage / validate anywhere; apply / detect / undo on Windows (wired in Phase 1 integration).</Description>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../WinUtil.Core/WinUtil.Core.csproj" />
+  </ItemGroup>
+</Project>

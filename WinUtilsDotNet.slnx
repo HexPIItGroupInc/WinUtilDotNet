@@ -1,0 +1,10 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/WinUtil.Cli/WinUtil.Cli.csproj" />
+    <Project Path="src/WinUtil.Core/WinUtil.Core.csproj" />
+    <Project Path="src/WinUtil.System/WinUtil.System.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/WinUtil.Core.Tests/WinUtil.Core.Tests.csproj" />
+  </Folder>
+</Solution>

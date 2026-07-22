@@ -1,0 +1,50 @@
+{
+  "WPFTweaksSample": {
+    "Content": "Sample - Disable Thing",
+    "Description": "A fixture entry with a raw	tab and PowerShell-style paths, mirroring upstream's lenient JSON.",
+    "category": "Essential Tweaks",
+    "panel": "1",
+    "registry": [
+      {
+        "Path": "HKLM:\\SOFTWARE\\Fixture\\Thing",
+        "Name": "Enabled",
+        "Value": "0",
+        "Type": "DWord",
+        "OriginalValue": "1"
+      },
+      {
+        "Path": "HKCU:\\SOFTWARE\\Fixture\\Thing",
+        "Name": "Mode",
+        "Value": "off",
+        "Type": "String",
+        "OriginalValue": "on"
+      }
+    ],
+    "link": "https://example.invalid/sample"
+  },
+  "WPFTweaksScripted": {
+    "Content": "Sample - Scripted",
+    "category": "z__Advanced Tweaks - CAUTION",
+    "panel": "1",
+    "InvokeScript": [
+      "Write-Host 'legacy escape hatch'"
+    ],
+    "UndoScript": [
+      "Write-Host 'undo'"
+    ],
+    "link": "https://example.invalid/scripted"
+  },
+  "WPFTweaksService": {
+    "Content": "Sample - Service",
+    "category": "Essential Tweaks",
+    "panel": "1",
+    "service": [
+      {
+        "Name": "FixtureSvc",
+        "StartupType": "Disabled",
+        "OriginalType": "Manual"
+      }
+    ],
+    "link": "https://example.invalid/service"
+  }
+}

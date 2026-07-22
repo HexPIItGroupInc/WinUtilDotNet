@@ -1,0 +1,5 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <Description>Engine and domain model for WinUtilsDotNet. Consumes winutil's JSON catalogs unchanged. Zero Windows dependencies by design — see docs/adr/0002.</Description>
+  </PropertyGroup>
+</Project>

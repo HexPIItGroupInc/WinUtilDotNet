@@ -1,0 +1,28 @@
+name: CI
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  build-test:
+    runs-on: ubuntu-latest
+    container: mcr.microsoft.com/dotnet/sdk:10.0
+    steps:
+      - uses: actions/checkout@v4
+
+      # Catalog-as-contract: tests validate against the real, unmodified
+      # upstream catalogs on every run.
+      - name: Fetch upstream winutil catalogs
+        run: git clone --depth 1 https://github.com/ChrisTitusTech/winutil.git /tmp/winutil
+
+      - name: Build (warnings are errors)
+        run: dotnet build --configuration Release
+
+      - name: Unit tests + upstream catalog tests
+        run: dotnet test --configuration Release --no-build
+        env:
+          WINUTIL_REPO: /tmp/winutil
+
+      - name: PowerShell-free coverage metric
+        run: dotnet run --project src/WinUtil.Cli --configuration Release --no-build -- coverage --catalog /tmp/winutil/config/tweaks.json
