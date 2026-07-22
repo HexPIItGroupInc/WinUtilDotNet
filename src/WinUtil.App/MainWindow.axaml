@@ -52,8 +52,10 @@
       </DockPanel>
     </Border>
 
-    <!-- Tweak list -->
-    <ScrollViewer Grid.Row="1" Grid.Column="1" Padding="20,16">
+    <!-- Tweak list. Extra right padding keeps the floating scrollbar from
+         overlapping the action buttons. -->
+    <ScrollViewer Grid.Row="1" Grid.Column="1" Padding="20,16,34,16"
+                  HorizontalScrollBarVisibility="Disabled">
       <ItemsControl ItemsSource="{Binding FilteredTweaks}">
         <ItemsControl.ItemTemplate>
           <DataTemplate x:DataType="vm:TweakItemViewModel">

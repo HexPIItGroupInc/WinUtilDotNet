@@ -24,6 +24,13 @@ public sealed class ProcessCommandRunner : ICommandRunner
 
         using var process = Process.Start(psi)
             ?? throw new InvalidOperationException($"Failed to start '{psi.FileName}'.");
+
+        if (command.Background)
+        {
+            // Shell relaunch etc. — started, not awaited.
+            return 0;
+        }
+
         process.WaitForExit();
         return process.ExitCode;
     }

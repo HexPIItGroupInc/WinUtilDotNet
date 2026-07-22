@@ -88,13 +88,21 @@ public partial class TweakItemViewModel(Tweak tweak, MainViewModel parent) : Obs
         try
         {
             action(engine);
-            Redetect();
-            parent.RefreshSummary();
             parent.SetStatus($"{Name}: {verb} → {StateText}");
         }
-        catch (Exception e) when (e is InvalidOperationException or UnauthorizedAccessException or IOException)
+#pragma warning disable CA1031 // A single tweak must never crash the app — any
+        catch (Exception e)      // failure (network, ACL, missing tool) becomes a status message.
+#pragma warning restore CA1031
         {
-            parent.SetStatus($"{Name}: {e.Message}");
+            var hint = e is UnauthorizedAccessException ? " (needs admin — run as administrator)" : "";
+            parent.SetStatus($"{Name}: failed — {e.Message}{hint}");
+        }
+        finally
+        {
+            // Always reflect the true system state, even if the action partly
+            // failed — the registry/service change may already be live.
+            Redetect();
+            parent.RefreshSummary();
         }
     }
 }

@@ -1,29 +1,89 @@
 {
   "WPFTweaksHiber": {
-    "apply": [{ "file": "powercfg.exe", "args": "/hibernate off" }],
-    "undo": [{ "file": "powercfg.exe", "args": "/hibernate on" }]
+    "apply": [
+      {
+        "file": "powercfg.exe",
+        "args": "/hibernate off"
+      }
+    ],
+    "undo": [
+      {
+        "file": "powercfg.exe",
+        "args": "/hibernate on"
+      }
+    ]
   },
   "WPFTweaksTeredo": {
-    "apply": [{ "file": "netsh.exe", "args": "interface teredo set state disabled" }],
-    "undo": [{ "file": "netsh.exe", "args": "interface teredo set state default" }]
+    "apply": [
+      {
+        "file": "netsh.exe",
+        "args": "interface teredo set state disabled"
+      }
+    ],
+    "undo": [
+      {
+        "file": "netsh.exe",
+        "args": "interface teredo set state default"
+      }
+    ]
   },
   "WPFTweaksReservedStorage": {
-    "apply": [{ "file": "dism.exe", "args": "/Online /Set-ReservedStorageState /State:Disabled" }],
-    "undo": [{ "file": "dism.exe", "args": "/Online /Set-ReservedStorageState /State:Enabled" }]
+    "apply": [
+      {
+        "file": "dism.exe",
+        "args": "/Online /Set-ReservedStorageState /State:Disabled"
+      }
+    ],
+    "undo": [
+      {
+        "file": "dism.exe",
+        "args": "/Online /Set-ReservedStorageState /State:Enabled"
+      }
+    ]
   },
   "WPFTweaksDisableStoreSearch": {
-    "apply": [{ "file": "icacls.exe", "args": "\"%LocalAppData%\\Packages\\Microsoft.WindowsStore_8wekyb3d8bbwe\\LocalState\\store.db\" /deny Everyone:F" }],
-    "undo": [{ "file": "icacls.exe", "args": "\"%LocalAppData%\\Packages\\Microsoft.WindowsStore_8wekyb3d8bbwe\\LocalState\\store.db\" /grant Everyone:F" }]
+    "apply": [
+      {
+        "file": "icacls.exe",
+        "args": "\"%LocalAppData%\\Packages\\Microsoft.WindowsStore_8wekyb3d8bbwe\\LocalState\\store.db\" /deny Everyone:F"
+      }
+    ],
+    "undo": [
+      {
+        "file": "icacls.exe",
+        "args": "\"%LocalAppData%\\Packages\\Microsoft.WindowsStore_8wekyb3d8bbwe\\LocalState\\store.db\" /grant Everyone:F"
+      }
+    ]
   },
   "WPFTweaksWidget": {
     "preApply": [
-      { "file": "taskkill.exe", "args": "/f /im Widgets.exe", "ignoreExitCode": true },
-      { "file": "taskkill.exe", "args": "/f /im WidgetService.exe", "ignoreExitCode": true }
+      {
+        "file": "taskkill.exe",
+        "args": "/f /im Widgets.exe",
+        "ignoreExitCode": true
+      },
+      {
+        "file": "taskkill.exe",
+        "args": "/f /im WidgetService.exe",
+        "ignoreExitCode": true
+      }
     ],
-    "appxRemove": ["Microsoft.WidgetsPlatformRuntime", "MicrosoftWindows.Client.WebExperience"],
+    "appxRemove": [
+      "Microsoft.WidgetsPlatformRuntime",
+      "MicrosoftWindows.Client.WebExperience"
+    ],
     "apply": [
-      { "file": "taskkill.exe", "args": "/f /im explorer.exe", "ignoreExitCode": true },
-      { "file": "explorer.exe", "args": "", "ignoreExitCode": true }
+      {
+        "file": "taskkill.exe",
+        "args": "/f /im explorer.exe",
+        "ignoreExitCode": true
+      },
+      {
+        "file": "explorer.exe",
+        "args": "",
+        "ignoreExitCode": true,
+        "background": true
+      }
     ],
     "undo": []
   },
@@ -70,23 +130,61 @@
       }
     ],
     "apply": [
-      { "file": "taskkill.exe", "args": "/f /im explorer.exe", "ignoreExitCode": true },
-      { "file": "explorer.exe", "args": "", "ignoreExitCode": true }
+      {
+        "file": "taskkill.exe",
+        "args": "/f /im explorer.exe",
+        "ignoreExitCode": true
+      },
+      {
+        "file": "explorer.exe",
+        "args": "",
+        "ignoreExitCode": true,
+        "background": true
+      }
     ],
-    "undoRegistryDeleteKeys": ["HKCU:\\Software\\Classes\\CLSID\\{86ca1aa0-34aa-4e8b-a509-50c905bae2a2}"],
+    "undoRegistryDeleteKeys": [
+      "HKCU:\\Software\\Classes\\CLSID\\{86ca1aa0-34aa-4e8b-a509-50c905bae2a2}"
+    ],
     "undo": [
-      { "file": "taskkill.exe", "args": "/f /im explorer.exe", "ignoreExitCode": true },
-      { "file": "explorer.exe", "args": "", "ignoreExitCode": true }
+      {
+        "file": "taskkill.exe",
+        "args": "/f /im explorer.exe",
+        "ignoreExitCode": true
+      },
+      {
+        "file": "explorer.exe",
+        "args": "",
+        "ignoreExitCode": true,
+        "background": true
+      }
     ]
   },
   "WPFToggleDarkMode": {
     "apply": [
-      { "file": "taskkill.exe", "args": "/f /im explorer.exe", "ignoreExitCode": true },
-      { "file": "explorer.exe", "args": "", "ignoreExitCode": true }
+      {
+        "file": "taskkill.exe",
+        "args": "/f /im explorer.exe",
+        "ignoreExitCode": true
+      },
+      {
+        "file": "explorer.exe",
+        "args": "",
+        "ignoreExitCode": true,
+        "background": true
+      }
     ],
     "undo": [
-      { "file": "taskkill.exe", "args": "/f /im explorer.exe", "ignoreExitCode": true },
-      { "file": "explorer.exe", "args": "", "ignoreExitCode": true }
+      {
+        "file": "taskkill.exe",
+        "args": "/f /im explorer.exe",
+        "ignoreExitCode": true
+      },
+      {
+        "file": "explorer.exe",
+        "args": "",
+        "ignoreExitCode": true,
+        "background": true
+      }
     ]
   },
   "WPFTweaksDisableExplorerAutoDiscovery": {
@@ -109,7 +207,10 @@
     "undo": []
   },
   "WPFTweaksDeleteTempFiles": {
-    "deletePaths": ["%Temp%\\*", "%SystemRoot%\\Temp\\*"],
+    "deletePaths": [
+      "%Temp%\\*",
+      "%SystemRoot%\\Temp\\*"
+    ],
     "undo": []
   },
   "WPFTweaksBlockAdobeNet": {
@@ -117,60 +218,163 @@
       "url": "https://github.com/Ruddernation-Designs/Adobe-URL-Block-List/raw/refs/heads/master/hosts",
       "removeFromMarker": "#New Ver"
     },
-    "apply": [{ "file": "ipconfig.exe", "args": "/flushdns" }],
-    "undo": [{ "file": "ipconfig.exe", "args": "/flushdns" }]
+    "apply": [
+      {
+        "file": "ipconfig.exe",
+        "args": "/flushdns"
+      }
+    ],
+    "undo": [
+      {
+        "file": "ipconfig.exe",
+        "args": "/flushdns"
+      }
+    ]
   },
   "WPFTweaksRazerBlock": {
-    "ensureDirs": ["%SystemRoot%\\Installer\\Razer"],
-    "deletePaths": ["%SystemRoot%\\Installer\\Razer\\*"],
-    "apply": [{ "file": "icacls.exe", "args": "\"%SystemRoot%\\Installer\\Razer\" /deny Everyone:(W)" }],
-    "undo": [{ "file": "icacls.exe", "args": "\"%SystemRoot%\\Installer\\Razer\" /remove:d Everyone" }]
+    "ensureDirs": [
+      "%SystemRoot%\\Installer\\Razer"
+    ],
+    "deletePaths": [
+      "%SystemRoot%\\Installer\\Razer\\*"
+    ],
+    "apply": [
+      {
+        "file": "icacls.exe",
+        "args": "\"%SystemRoot%\\Installer\\Razer\" /deny Everyone:(W)"
+      }
+    ],
+    "undo": [
+      {
+        "file": "icacls.exe",
+        "args": "\"%SystemRoot%\\Installer\\Razer\" /remove:d Everyone"
+      }
+    ]
   },
   "WPFTweaksDiskCleanup": {
     "apply": [
-      { "file": "cleanmgr.exe", "args": "/d C: /VERYLOWDISK", "ignoreExitCode": true },
-      { "file": "dism.exe", "args": "/online /Cleanup-Image /StartComponentCleanup /ResetBase" }
+      {
+        "file": "cleanmgr.exe",
+        "args": "/d C: /VERYLOWDISK",
+        "ignoreExitCode": true
+      },
+      {
+        "file": "dism.exe",
+        "args": "/online /Cleanup-Image /StartComponentCleanup /ResetBase"
+      }
     ],
     "undo": []
   },
   "WPFToggleShowExt": {
     "apply": [
-      { "file": "taskkill.exe", "args": "/f /im explorer.exe", "ignoreExitCode": true },
-      { "file": "explorer.exe", "args": "", "ignoreExitCode": true }
+      {
+        "file": "taskkill.exe",
+        "args": "/f /im explorer.exe",
+        "ignoreExitCode": true
+      },
+      {
+        "file": "explorer.exe",
+        "args": "",
+        "ignoreExitCode": true,
+        "background": true
+      }
     ],
     "undo": [
-      { "file": "taskkill.exe", "args": "/f /im explorer.exe", "ignoreExitCode": true },
-      { "file": "explorer.exe", "args": "", "ignoreExitCode": true }
+      {
+        "file": "taskkill.exe",
+        "args": "/f /im explorer.exe",
+        "ignoreExitCode": true
+      },
+      {
+        "file": "explorer.exe",
+        "args": "",
+        "ignoreExitCode": true,
+        "background": true
+      }
     ]
   },
   "WPFToggleHiddenFiles": {
     "apply": [
-      { "file": "taskkill.exe", "args": "/f /im explorer.exe", "ignoreExitCode": true },
-      { "file": "explorer.exe", "args": "", "ignoreExitCode": true }
+      {
+        "file": "taskkill.exe",
+        "args": "/f /im explorer.exe",
+        "ignoreExitCode": true
+      },
+      {
+        "file": "explorer.exe",
+        "args": "",
+        "ignoreExitCode": true,
+        "background": true
+      }
     ],
     "undo": [
-      { "file": "taskkill.exe", "args": "/f /im explorer.exe", "ignoreExitCode": true },
-      { "file": "explorer.exe", "args": "", "ignoreExitCode": true }
+      {
+        "file": "taskkill.exe",
+        "args": "/f /im explorer.exe",
+        "ignoreExitCode": true
+      },
+      {
+        "file": "explorer.exe",
+        "args": "",
+        "ignoreExitCode": true,
+        "background": true
+      }
     ]
   },
   "WPFToggleStartMenuRecommendations": {
     "apply": [
-      { "file": "taskkill.exe", "args": "/f /im explorer.exe", "ignoreExitCode": true },
-      { "file": "explorer.exe", "args": "", "ignoreExitCode": true }
+      {
+        "file": "taskkill.exe",
+        "args": "/f /im explorer.exe",
+        "ignoreExitCode": true
+      },
+      {
+        "file": "explorer.exe",
+        "args": "",
+        "ignoreExitCode": true,
+        "background": true
+      }
     ],
     "undo": [
-      { "file": "taskkill.exe", "args": "/f /im explorer.exe", "ignoreExitCode": true },
-      { "file": "explorer.exe", "args": "", "ignoreExitCode": true }
+      {
+        "file": "taskkill.exe",
+        "args": "/f /im explorer.exe",
+        "ignoreExitCode": true
+      },
+      {
+        "file": "explorer.exe",
+        "args": "",
+        "ignoreExitCode": true,
+        "background": true
+      }
     ]
   },
   "WPFToggleTaskbarAlignment": {
     "apply": [
-      { "file": "taskkill.exe", "args": "/f /im explorer.exe", "ignoreExitCode": true },
-      { "file": "explorer.exe", "args": "", "ignoreExitCode": true }
+      {
+        "file": "taskkill.exe",
+        "args": "/f /im explorer.exe",
+        "ignoreExitCode": true
+      },
+      {
+        "file": "explorer.exe",
+        "args": "",
+        "ignoreExitCode": true,
+        "background": true
+      }
     ],
     "undo": [
-      { "file": "taskkill.exe", "args": "/f /im explorer.exe", "ignoreExitCode": true },
-      { "file": "explorer.exe", "args": "", "ignoreExitCode": true }
+      {
+        "file": "taskkill.exe",
+        "args": "/f /im explorer.exe",
+        "ignoreExitCode": true
+      },
+      {
+        "file": "explorer.exe",
+        "args": "",
+        "ignoreExitCode": true,
+        "background": true
+      }
     ]
   }
 }

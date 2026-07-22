@@ -14,4 +14,11 @@ public sealed record CommandAction
 
     /// <summary>Tolerate non-zero exit (e.g. taskkill when the process wasn't running).</summary>
     public bool IgnoreExitCode { get; init; }
+
+    /// <summary>
+    /// Fire-and-forget: start the process and do not wait for it. Required for
+    /// shell relaunches (explorer.exe) that become long-lived and would
+    /// otherwise block the caller indefinitely.
+    /// </summary>
+    public bool Background { get; init; }
 }

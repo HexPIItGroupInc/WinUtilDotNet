@@ -143,6 +143,7 @@ public static class CatalogLoader
         File = GetString(e, "file") ?? throw new FormatException("Overlay command is missing 'file'."),
         Args = GetString(e, "args") ?? "",
         IgnoreExitCode = e.TryGetProperty("ignoreExitCode", out var i) && i.ValueKind == JsonValueKind.True,
+        Background = e.TryGetProperty("background", out var b) && b.ValueKind == JsonValueKind.True,
     };
 
     private static string? GetString(JsonElement element, string name) =>
