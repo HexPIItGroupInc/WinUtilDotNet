@@ -73,36 +73,38 @@ public partial class TweakItemViewModel(Tweak tweak, MainViewModel parent) : Obs
     }
 
     [RelayCommand]
-    private void Apply() => Run("applied", e => e.Apply(tweak));
+    private Task ApplyAsync() => Run("applied", e => e.Apply(tweak));
 
     [RelayCommand]
-    private void Undo() => Run("undone", e => e.Undo(tweak));
+    private Task UndoAsync() => Run("undone", e => e.Undo(tweak));
 
-    private void Run(string verb, Action<Core.Engine.TweakEngine> action)
+    private async Task Run(string verb, Action<Core.Engine.TweakEngine> action)
     {
         if (parent.Engine is not { } engine)
         {
             return;
         }
 
+        parent.SetStatus($"{Name}: {verb}…");
+        string message;
         try
         {
-            action(engine);
-            parent.SetStatus($"{Name}: {verb} → {StateText}");
+            // Off the UI thread: a tweak may do slow I/O (a hosts blocklist
+            // fetch, DISM) and must never freeze or deadlock the window.
+            await Task.Run(() => action(engine));
+            message = $"{Name}: {verb}";
         }
 #pragma warning disable CA1031 // A single tweak must never crash the app — any
         catch (Exception e)      // failure (network, ACL, missing tool) becomes a status message.
 #pragma warning restore CA1031
         {
             var hint = e is UnauthorizedAccessException ? " (needs admin — run as administrator)" : "";
-            parent.SetStatus($"{Name}: failed — {e.Message}{hint}");
+            message = $"{Name}: failed — {e.Message}{hint}";
         }
-        finally
-        {
-            // Always reflect the true system state, even if the action partly
-            // failed — the registry/service change may already be live.
-            Redetect();
-            parent.RefreshSummary();
-        }
+
+        // Back on the UI thread after the await: reflect true system state.
+        Redetect();
+        parent.RefreshSummary();
+        parent.SetStatus(message);
     }
 }

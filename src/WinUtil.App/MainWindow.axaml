@@ -67,12 +67,17 @@
                 <Border Grid.Column="0" Background="{Binding AccentBrush}"
                         CornerRadius="2" Margin="-8,-4,10,-4" />
                 <StackPanel Grid.Column="1" Spacing="3" Margin="0,0,16,0">
-                  <StackPanel Orientation="Horizontal" Spacing="8">
-                    <TextBlock Text="{Binding Name}" FontWeight="SemiBold" FontSize="14" />
-                    <Border Classes="chip" Background="#3A2A10" IsVisible="{Binding IsScript}">
+                  <!-- Title in a bounded * column so long titles wrap instead of
+                       forcing the card wider than the window. -->
+                  <Grid ColumnDefinitions="*,Auto">
+                    <TextBlock Grid.Column="0" Text="{Binding Name}" TextWrapping="Wrap"
+                               FontWeight="SemiBold" FontSize="14" VerticalAlignment="Center" />
+                    <Border Grid.Column="1" Classes="chip" Background="#3A2A10"
+                            Margin="8,0,0,0" VerticalAlignment="Center"
+                            IsVisible="{Binding IsScript}">
                       <TextBlock Text="script" Foreground="#F0B35C" />
                     </Border>
-                  </StackPanel>
+                  </Grid>
                   <TextBlock Text="{Binding Description}" TextWrapping="Wrap"
                              Foreground="#8B96A3" FontSize="12" />
                 </StackPanel>
@@ -85,7 +90,7 @@
                   <Button Classes="action primary" Content="{Binding ApplyLabel}"
                           Command="{Binding ApplyCommand}" IsVisible="{Binding ShowApply}" />
                   <Button Classes="action" Content="Undo"
-                          Command="{Binding UndoCommand}" IsVisible="{Binding ShowUndo}" />
+                          Command="{Binding UndoCommand}" IsVisible="{Binding ShowUndo}" /><!-- ApplyCommand/UndoCommand generated from ApplyAsync/UndoAsync -->
                 </StackPanel>
               </Grid>
             </Border>

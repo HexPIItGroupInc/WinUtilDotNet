@@ -45,13 +45,15 @@
     "apply": [
       {
         "file": "icacls.exe",
-        "args": "\"%LocalAppData%\\Packages\\Microsoft.WindowsStore_8wekyb3d8bbwe\\LocalState\\store.db\" /deny Everyone:F"
+        "args": "\"%LocalAppData%\\Packages\\Microsoft.WindowsStore_8wekyb3d8bbwe\\LocalState\\store.db\" /deny Everyone:F",
+        "ignoreExitCode": true
       }
     ],
     "undo": [
       {
         "file": "icacls.exe",
-        "args": "\"%LocalAppData%\\Packages\\Microsoft.WindowsStore_8wekyb3d8bbwe\\LocalState\\store.db\" /grant Everyone:F"
+        "args": "\"%LocalAppData%\\Packages\\Microsoft.WindowsStore_8wekyb3d8bbwe\\LocalState\\store.db\" /grant Everyone:F",
+        "ignoreExitCode": true
       }
     ]
   },

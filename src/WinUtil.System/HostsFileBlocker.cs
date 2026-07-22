@@ -16,7 +16,7 @@ public sealed class HostsFileBlocker : IHostsBlocker
 
     public void ApplyBlocklist(string url)
     {
-        using var http = new HttpClient();
+        using var http = new HttpClient { Timeout = TimeSpan.FromSeconds(20) };
         var content = http.GetStringAsync(url).GetAwaiter().GetResult();
         File.AppendAllText(HostsPath, Environment.NewLine + content);
     }
