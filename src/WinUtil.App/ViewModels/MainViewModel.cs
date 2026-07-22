@@ -145,15 +145,17 @@ public partial class MainViewModel : ObservableObject
     private static TweakEngine? CreateEngine()
     {
 #if WINDOWS
+        var appx = new WinUtil.System.WindowsAppx();
         return new TweakEngine(
             new WinUtil.System.WindowsRegistry(),
             new FileJournal(WinUtil.System.SharedJournal.EnsureWritable()),
             new WinUtil.System.WindowsServices(),
             new WinUtil.System.ProcessCommandRunner(),
-            new WinUtil.System.WindowsAppx(),
+            appx,
             new WinUtil.System.NativeFileSystem(),
             new WinUtil.System.HostsFileBlocker(),
-            new WinUtil.System.WindowsTokenProvider(),
+            new WinUtil.System.WindowsTokenProvider(appx),
+            new WinUtil.System.WindowsSystemRestore(),
             source: "gui");
 #else
         return null;

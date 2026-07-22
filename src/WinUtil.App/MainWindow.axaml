@@ -80,6 +80,12 @@
                   </Grid>
                   <TextBlock Text="{Binding Description}" TextWrapping="Wrap"
                              Foreground="#8B96A3" FontSize="12" />
+                  <!-- Actionable explanation after a failed apply/undo. -->
+                  <Border Background="#3A2A10" CornerRadius="6" Padding="10,6" Margin="0,4,0,0"
+                          IsVisible="{Binding HasMessage}">
+                    <TextBlock Text="{Binding ActionMessage}" TextWrapping="Wrap"
+                               Foreground="#F0B35C" FontSize="12" />
+                  </Border>
                 </StackPanel>
 
                 <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8"

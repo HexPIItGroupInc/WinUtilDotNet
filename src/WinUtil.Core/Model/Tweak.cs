@@ -46,6 +46,9 @@ public sealed record Tweak
     /// <summary>Overlay: hosts-file blocklist action.</summary>
     public HostsBlock? HostsBlock { get; init; }
 
+    /// <summary>Overlay: create a System Restore checkpoint with this description on apply.</summary>
+    public string? CreateRestorePoint { get; init; }
+
     /// <summary>Overlay: registry key trees deleted on apply, BEFORE typed registry writes.</summary>
     public IReadOnlyList<string> RegistryDeleteKeys { get; init; } = [];
 

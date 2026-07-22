@@ -98,6 +98,42 @@ public class OverlayTests
         Assert.Throws<InvalidOperationException>(() => engine.Apply(tweak));
     }
 
+    [Fact]
+    public void Overlay_can_add_service_changes_to_a_scripted_tweak()
+    {
+        const string catalog = """{ "WPFTweaksTel": { "Content": "Tel", "InvokeScript": ["x"] } }""";
+        const string overlay = """
+            {
+              "WPFTweaksTel": {
+                "service": [{ "Name": "diagtrack", "StartupType": "Disabled", "OriginalType": "Automatic" }]
+              }
+            }
+            """;
+
+        var tweak = CatalogLoader.LoadTweaks(catalog, overlay).Single();
+
+        Assert.True(tweak.IsNativelyExecutable);
+        var svc = Assert.Single(tweak.Service);
+        Assert.Equal("diagtrack", svc.Name);
+        Assert.Equal("Disabled", svc.StartupType);
+    }
+
+    [SkippableFact]
+    public void Every_upstream_script_tweak_has_an_overlay_entry_hitting_100_percent()
+    {
+        var overlayPath = FindUp("native/overrides.json");
+        var repo = Environment.GetEnvironmentVariable("WINUTIL_REPO");
+        Skip.If(overlayPath is null || repo is null, "overlay or WINUTIL_REPO not found");
+
+        var tweaks = CatalogLoader.LoadTweaks(
+            File.ReadAllText(Path.Combine(repo!, "config", "tweaks.json")),
+            File.ReadAllText(overlayPath!));
+
+        var uncovered = tweaks.Where(t => t.HasScripts && !t.ScriptsCovered).Select(t => t.Id).ToList();
+        Assert.True(uncovered.Count == 0, $"uncovered script tweaks: {string.Join(", ", uncovered)}");
+        Assert.Equal(100.0, CatalogCoverage.Measure(tweaks).NativePercent);
+    }
+
     [SkippableFact]
     public void Repo_overlay_file_is_valid_against_the_real_catalog()
     {

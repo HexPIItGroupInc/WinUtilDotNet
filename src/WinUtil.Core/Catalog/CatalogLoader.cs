@@ -33,6 +33,7 @@ public static class CatalogLoader
                 DeletePaths = over?.DeletePaths ?? [],
                 EnsureDirs = over?.EnsureDirs ?? [],
                 HostsBlock = over?.HostsBlock,
+                CreateRestorePoint = over?.CreateRestorePoint,
                 RegistryDeleteKeys = over?.RegistryDeleteKeys ?? [],
                 UndoRegistryDeleteKeys = over?.UndoRegistryDeleteKeys ?? [],
                 ScriptsCovered = over is not null,
@@ -43,12 +44,8 @@ public static class CatalogLoader
                 Panel = GetString(e, "panel"),
                 Link = GetString(e, "link"),
                 Registry = [.. ReadArray(e, "registry", r => ReadRegistryChange(r, entry.Name)), .. over?.Registry ?? []],
-                Service = ReadArray(e, "service", s => new ServiceChange
-                {
-                    Name = GetString(s, "Name") ?? throw MissingField(entry.Name, "service.Name"),
-                    StartupType = GetString(s, "StartupType") ?? throw MissingField(entry.Name, "service.StartupType"),
-                    OriginalType = GetString(s, "OriginalType"),
-                }),
+                Service = [.. ReadArray(e, "service", s => ReadServiceChange(s, entry.Name)), .. over?.Service ?? []],
+                // ^ base-catalog service changes plus any the native overlay adds
                 InvokeScript = ReadArray(e, "InvokeScript", s => s.GetString() ?? ""),
                 UndoScript = ReadArray(e, "UndoScript", s => s.GetString() ?? ""),
             });
@@ -84,6 +81,13 @@ public static class CatalogLoader
         return packages;
     }
 
+    private static ServiceChange ReadServiceChange(JsonElement s, string owner) => new()
+    {
+        Name = GetString(s, "Name") ?? throw MissingField(owner, "service.Name"),
+        StartupType = GetString(s, "StartupType") ?? throw MissingField(owner, "service.StartupType"),
+        OriginalType = GetString(s, "OriginalType"),
+    };
+
     private static RegistryChange ReadRegistryChange(JsonElement r, string owner) => new()
     {
         Path = GetString(r, "Path") ?? throw MissingField(owner, "registry.Path"),
@@ -102,6 +106,8 @@ public static class CatalogLoader
         IReadOnlyList<string> EnsureDirs,
         HostsBlock? HostsBlock,
         IReadOnlyList<RegistryChange> Registry,
+        IReadOnlyList<ServiceChange> Service,
+        string? CreateRestorePoint,
         IReadOnlyList<string> RegistryDeleteKeys,
         IReadOnlyList<string> UndoRegistryDeleteKeys);
 
@@ -131,6 +137,8 @@ public static class CatalogLoader
                 ReadArray(entry.Value, "ensureDirs", e => e.GetString() ?? ""),
                 hosts,
                 ReadArray(entry.Value, "registry", r => ReadRegistryChange(r, entry.Name)),
+                ReadArray(entry.Value, "service", s => ReadServiceChange(s, entry.Name)),
+                GetString(entry.Value, "createRestorePoint"),
                 ReadArray(entry.Value, "registryDeleteKeys", e => e.GetString() ?? ""),
                 ReadArray(entry.Value, "undoRegistryDeleteKeys", e => e.GetString() ?? ""));
         }

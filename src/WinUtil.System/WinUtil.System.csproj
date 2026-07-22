@@ -5,6 +5,9 @@
     <Description>The only layer that touches Windows. Adapters implementing WinUtil.Core's ports against real Win32/COM/.NET APIs.</Description>
   </PropertyGroup>
   <ItemGroup>
+    <PackageReference Include="System.Management" Version="9.0.0" />
+  </ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="../WinUtil.Core/WinUtil.Core.csproj" />
   </ItemGroup>
 </Project>

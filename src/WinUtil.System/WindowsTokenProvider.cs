@@ -8,40 +8,57 @@ using WinUtil.Core.Abstractions;
 namespace WinUtil.System;
 
 /// <summary>
-/// Computes machine-specific overlay tokens. Values are resolved lazily and
-/// cached for the process lifetime.
+/// Computes machine-specific overlay tokens:
+///   {{RAM_KB}}                   physical memory in KB
+///   {{USER_SID}}                 current user's SID
+///   {{APPX_FULLNAME:Package.Id}} full package name of an installed appx (empty if absent)
+/// Values are resolved lazily and cached for the process lifetime.
 /// </summary>
 [SupportedOSPlatform("windows")]
-public sealed partial class WindowsTokenProvider : ITokenProvider
+public sealed partial class WindowsTokenProvider(IAppx? appx = null) : ITokenProvider
 {
-    private readonly Dictionary<string, Func<string>> tokens;
-    private readonly Dictionary<string, string> cache = [];
-
-    public WindowsTokenProvider()
+    private readonly Dictionary<string, Func<string>> tokens = new(StringComparer.OrdinalIgnoreCase)
     {
-        tokens = new Dictionary<string, Func<string>>(StringComparer.OrdinalIgnoreCase)
-        {
-            ["RAM_KB"] = PhysicalMemoryKb,
-            ["USER_SID"] = CurrentUserSid,
-        };
-    }
+        ["RAM_KB"] = PhysicalMemoryKb,
+        ["USER_SID"] = CurrentUserSid,
+    };
+
+    private readonly Dictionary<string, string> cache = [];
 
     public string Resolve(string text) =>
         TokenPattern().Replace(text, match =>
         {
             var name = match.Groups[1].Value;
-            if (!tokens.TryGetValue(name, out var compute))
+            var arg = match.Groups[2].Success ? match.Groups[2].Value : null;
+            var key = arg is null ? name : $"{name}:{arg}";
+
+            if (cache.TryGetValue(key, out var cached))
             {
-                throw new ArgumentException($"Unknown overlay token '{{{{{name}}}}}'.", nameof(text));
+                return cached;
             }
 
-            if (!cache.TryGetValue(name, out var value))
-            {
-                cache[name] = value = compute();
-            }
-
+            var value = Compute(name, arg, text);
+            cache[key] = value;
             return value;
         });
+
+    private string Compute(string name, string? arg, string text)
+    {
+        if (arg is not null)
+        {
+            if (!name.Equals("APPX_FULLNAME", StringComparison.OrdinalIgnoreCase))
+            {
+                throw new ArgumentException($"Unknown parameterized overlay token '{{{{{name}:{arg}}}}}'.", nameof(text));
+            }
+
+            var matches = appx?.FindInstalled(arg) ?? [];
+            return matches.Count > 0 ? matches[0] : "";
+        }
+
+        return tokens.TryGetValue(name, out var compute)
+            ? compute()
+            : throw new ArgumentException($"Unknown overlay token '{{{{{name}}}}}'.", nameof(text));
+    }
 
     private static string PhysicalMemoryKb()
     {
@@ -63,6 +80,7 @@ public sealed partial class WindowsTokenProvider : ITokenProvider
     [return: MarshalAs(UnmanagedType.Bool)]
     private static partial bool GetPhysicallyInstalledSystemMemory(out long totalMemoryInKilobytes);
 
-    [GeneratedRegex(@"\{\{(\w+)\}\}")]
+    // {{NAME}} or {{NAME:argument}}
+    [GeneratedRegex(@"\{\{(\w+)(?::([^}]+))?\}\}")]
     private static partial Regex TokenPattern();
 }

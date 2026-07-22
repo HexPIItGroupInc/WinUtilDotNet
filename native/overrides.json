@@ -378,5 +378,178 @@
         "background": true
       }
     ]
+  },
+  "WPFTweaksTelemetry": {
+    "registry": [
+      {
+        "Path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows Defender\\Spynet",
+        "Name": "SubmitSamplesConsent",
+        "Value": "2",
+        "Type": "DWord",
+        "OriginalValue": "1"
+      },
+      {
+        "Path": "HKLM:\\SYSTEM\\CurrentControlSet\\Control\\Session Manager\\Environment",
+        "Name": "POWERSHELL_TELEMETRY_OPTOUT",
+        "Value": "1",
+        "Type": "String"
+      }
+    ],
+    "service": [
+      {
+        "Name": "diagtrack",
+        "StartupType": "Disabled",
+        "OriginalType": "Automatic"
+      },
+      {
+        "Name": "wermgr",
+        "StartupType": "Disabled",
+        "OriginalType": "Automatic"
+      }
+    ],
+    "apply": [
+      {
+        "file": "reg.exe",
+        "args": "delete \"HKCU\\Software\\Microsoft\\Siuf\\Rules\" /v PeriodInNanoSeconds /f",
+        "ignoreExitCode": true
+      }
+    ],
+    "undo": []
+  },
+  "WPFTweaksRestorePoint": {
+    "registry": [
+      {
+        "Path": "HKLM:\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\SystemRestore",
+        "Name": "RPSessionInterval",
+        "Value": "1",
+        "Type": "DWord"
+      },
+      {
+        "Path": "HKLM:\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\SystemRestore",
+        "Name": "SystemRestorePointCreationFrequency",
+        "Value": "0",
+        "Type": "DWord"
+      }
+    ],
+    "createRestorePoint": "System Restore Point created by WinUtil",
+    "undo": []
+  },
+  "WPFTweaksRemoveEdge": {
+    "ensureDirs": [
+      "%SystemRoot%\\SystemApps\\Microsoft.MicrosoftEdge_8wekyb3d8bbwe"
+    ],
+    "apply": [
+      {
+        "file": "cmd.exe",
+        "args": "/c type nul > \"%SystemRoot%\\SystemApps\\Microsoft.MicrosoftEdge_8wekyb3d8bbwe\\MicrosoftEdge.exe\"",
+        "ignoreExitCode": true
+      },
+      {
+        "file": "%ProgramFiles(x86)%\\Microsoft\\Edge\\Application\\*\\Installer\\setup.exe",
+        "args": "--uninstall --system-level --force-uninstall --delete-profile",
+        "ignoreExitCode": true
+      }
+    ],
+    "undo": [
+      {
+        "file": "winget.exe",
+        "args": "install Microsoft.Edge --source winget --accept-source-agreements --accept-package-agreements",
+        "ignoreExitCode": true
+      }
+    ]
+  },
+  "WPFTweaksRemoveOneDrive": {
+    "preApply": [
+      {
+        "file": "taskkill.exe",
+        "args": "/f /im OneDrive.exe",
+        "ignoreExitCode": true
+      },
+      {
+        "file": "taskkill.exe",
+        "args": "/f /im FileCoAuth.exe",
+        "ignoreExitCode": true
+      }
+    ],
+    "apply": [
+      {
+        "file": "%SystemRoot%\\System32\\OneDriveSetup.exe",
+        "args": "/uninstall",
+        "ignoreExitCode": true
+      },
+      {
+        "file": "%SystemRoot%\\SysWOW64\\OneDriveSetup.exe",
+        "args": "/uninstall",
+        "ignoreExitCode": true
+      }
+    ],
+    "deletePaths": [
+      "%LocalAppData%\\Microsoft\\OneDrive\\*",
+      "%ProgramData%\\Microsoft OneDrive\\*"
+    ],
+    "service": [
+      {
+        "Name": "OneSyncSvc",
+        "StartupType": "Disabled",
+        "OriginalType": "Automatic"
+      }
+    ],
+    "undo": [
+      {
+        "file": "winget.exe",
+        "args": "install Microsoft.OneDrive --source winget --accept-source-agreements --accept-package-agreements",
+        "ignoreExitCode": true
+      }
+    ]
+  },
+  "WPFTweaksWindowsAI": {
+    "preApply": [
+      {
+        "file": "reg.exe",
+        "args": "add \"HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Appx\\AppxAllUserStore\\EndOfLife\\{{USER_SID}}\\{{APPX_FULLNAME:MicrosoftWindows.Client.CoreAI}}\" /f",
+        "ignoreExitCode": true
+      }
+    ],
+    "appxRemove": [
+      "Copilot",
+      "Microsoft.MicrosoftOfficeHub",
+      "MicrosoftWindows.Client.CoreAI"
+    ],
+    "service": [
+      {
+        "Name": "WSAIFabricSvc",
+        "StartupType": "Disabled",
+        "OriginalType": "Manual"
+      }
+    ],
+    "apply": [
+      {
+        "file": "winget.exe",
+        "args": "uninstall -e --name Copilot --silent --force --accept-source-agreements",
+        "ignoreExitCode": true
+      },
+      {
+        "file": "dism.exe",
+        "args": "/online /disable-feature /featurename:Recall /norestart",
+        "ignoreExitCode": true
+      }
+    ],
+    "undo": []
+  },
+  "WPFTweaksDisableBitLocker": {
+    "apply": [
+      {
+        "file": "manage-bde.exe",
+        "args": "-off %SystemDrive%",
+        "ignoreExitCode": true
+      }
+    ],
+    "undo": [
+      {
+        "file": "manage-bde.exe",
+        "args": "-on %SystemDrive%",
+        "ignoreExitCode": true
+      }
+    ]
   }
 }

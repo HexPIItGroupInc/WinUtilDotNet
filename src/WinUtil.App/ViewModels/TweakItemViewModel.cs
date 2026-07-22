@@ -12,6 +12,13 @@ public partial class TweakItemViewModel(Tweak tweak, MainViewModel parent) : Obs
         nameof(AccentBrush), nameof(ShowApply), nameof(ShowUndo), nameof(ApplyLabel))]
     private ActionState state = ActionState.Unknown;
 
+    /// <summary>A short explanation shown on the card after a failed action (e.g. "needs admin", "System Restore is off").</summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasMessage))]
+    private string? actionMessage;
+
+    public bool HasMessage => !string.IsNullOrEmpty(ActionMessage);
+
     public string Name => tweak.Content;
 
     public string Description => tweak.Description ?? "";
@@ -86,25 +93,27 @@ public partial class TweakItemViewModel(Tweak tweak, MainViewModel parent) : Obs
         }
 
         parent.SetStatus($"{Name}: {verb}…");
-        string message;
+        ActionMessage = null;
+        string status;
         try
         {
             // Off the UI thread: a tweak may do slow I/O (a hosts blocklist
             // fetch, DISM) and must never freeze or deadlock the window.
             await Task.Run(() => action(engine));
-            message = $"{Name}: {verb}";
+            status = $"{Name}: {verb}";
         }
 #pragma warning disable CA1031 // A single tweak must never crash the app — any
-        catch (Exception e)      // failure (network, ACL, missing tool) becomes a status message.
+        catch (Exception e)      // failure (network, ACL, missing tool) becomes a message.
 #pragma warning restore CA1031
         {
-            var hint = e is UnauthorizedAccessException ? " (needs admin — run as administrator)" : "";
-            message = $"{Name}: failed — {e.Message}{hint}";
+            var hint = e is UnauthorizedAccessException ? " This action needs administrator rights — launch WinUtil as administrator." : "";
+            ActionMessage = e.Message + hint;
+            status = $"{Name}: couldn't {verb.TrimEnd('d', 'e')} — see the note on the card";
         }
 
         // Back on the UI thread after the await: reflect true system state.
         Redetect();
         parent.RefreshSummary();
-        parent.SetStatus(message);
+        parent.SetStatus(status);
     }
 }

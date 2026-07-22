@@ -150,7 +150,10 @@ int WithEngine(string catalog, string journal, Action<TweakEngine, IReadOnlyList
 {
 #if WINDOWS
     return WithTweaks(catalog, tweaks =>
-        action(new TweakEngine(new WinUtil.System.WindowsRegistry(), new FileJournal(journal), new WinUtil.System.WindowsServices(), new WinUtil.System.ProcessCommandRunner(), new WinUtil.System.WindowsAppx(), new WinUtil.System.NativeFileSystem(), new WinUtil.System.HostsFileBlocker(), new WinUtil.System.WindowsTokenProvider(), source: "cli"), tweaks));
+    {
+        var appx = new WinUtil.System.WindowsAppx();
+        action(new TweakEngine(new WinUtil.System.WindowsRegistry(), new FileJournal(journal), new WinUtil.System.WindowsServices(), new WinUtil.System.ProcessCommandRunner(), appx, new WinUtil.System.NativeFileSystem(), new WinUtil.System.HostsFileBlocker(), new WinUtil.System.WindowsTokenProvider(appx), new WinUtil.System.WindowsSystemRestore(), source: "cli"), tweaks);
+    });
 #else
     Console.Error.WriteLine("apply/detect/undo require Windows (this build targets another OS).");
     return 3;

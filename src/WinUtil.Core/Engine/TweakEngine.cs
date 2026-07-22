@@ -8,7 +8,7 @@ namespace WinUtil.Core.Engine;
 /// ports. Registry and service changes are handled natively; script escape
 /// hatches are not executed here (they are the tracked burn-down backlog).
 /// </summary>
-public sealed class TweakEngine(IRegistry registry, IJournal journal, IServices? services = null, ICommandRunner? commands = null, IAppx? appx = null, IFileSystem? files = null, IHostsBlocker? hosts = null, ITokenProvider? tokens = null, string source = "unknown")
+public sealed class TweakEngine(IRegistry registry, IJournal journal, IServices? services = null, ICommandRunner? commands = null, IAppx? appx = null, IFileSystem? files = null, IHostsBlocker? hosts = null, ITokenProvider? tokens = null, ISystemRestore? systemRestore = null, string source = "unknown")
 {
     private string Expand(string value) =>
         tokens is null || !value.Contains("{{", StringComparison.Ordinal) ? value : tokens.Resolve(value);
@@ -83,6 +83,14 @@ public sealed class TweakEngine(IRegistry registry, IJournal journal, IServices?
     /// <summary>Apply all typed changes, journaling each value as it actually was first.</summary>
     public void Apply(Tweak tweak)
     {
+        // A safety checkpoint, if requested, comes before any change.
+        if (tweak.CreateRestorePoint is { } description)
+        {
+            var restore = systemRestore
+                ?? throw new InvalidOperationException("This tweak requests a restore point but no ISystemRestore adapter was provided.");
+            restore.CreateRestorePoint(description);
+        }
+
         foreach (var command in tweak.PreCommands)
         {
             RunCommand(command);
