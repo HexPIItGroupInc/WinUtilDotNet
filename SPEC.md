@@ -78,9 +78,11 @@ The proof-of-concept is a Phase 1 subset: registry + service + appx actions nati
 
 ## Open questions
 
-- GUI framework: WPF (familiarity, existing XAML concepts transfer) vs Avalonia (AOT single-exe distribution). Current lean: WPF.
+(none — see Resolved)
 
 ## Resolved
+
+- GUI framework: **Avalonia** (ADR-0005). Deciding factor: the development loop — maintainer and CI are on Linux, where Avalonia runs in browse/design mode; WPF would be reviewable only on the Windows VM. AOT single-exe publish also suits the one-artifact ethos.
 
 - Chris's "settings" pain point (per his 2026-07-22 video): **UI state drift** — toggles showing inferred rather than real system state. Addressed head-on by first-class `Detect()`; already demonstrated in CI, where a `detect --all` sweep of the live test VM correctly reported partially-reverted tweaks as `Drifted`.
 

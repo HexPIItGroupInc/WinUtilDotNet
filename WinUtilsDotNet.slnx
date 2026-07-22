@@ -1,5 +1,6 @@
 <Solution>
   <Folder Name="/src/">
+    <Project Path="src/WinUtil.App/WinUtil.App.csproj" />
     <Project Path="src/WinUtil.Cli/WinUtil.Cli.csproj" />
     <Project Path="src/WinUtil.Core/WinUtil.Core.csproj" />
     <Project Path="src/WinUtil.System/WinUtil.System.csproj" />
